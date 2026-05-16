@@ -1,0 +1,242 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   StreamHub design system — Netflix-inspired cinematic dark theme.
+   Single source of truth for every color, every surface, every accent.
+   Change the variables here and every component picks it up.
+─────────────────────────────────────────────────────────────────────────────── */
+
+:root {
+  /* Surfaces — pure black like Netflix */
+  --bg:            #000000;
+  --bg-elev-1:    #0a0a0a;    /* section bands, footer */
+  --bg-elev-2:    #141414;    /* Netflix's signature card black */
+  --bg-elev-3:    #1f1f1f;    /* card hover, form fields */
+  --bg-glass:    rgba(255, 255, 255, 0.06);
+  --bg-glass-strong: rgba(255, 255, 255, 0.12);
+
+  /* Strokes */
+  --border:        rgba(255, 255, 255, 0.10);
+  --border-strong: rgba(255, 255, 255, 0.20);
+
+  /* Text — Netflix gray scale */
+  --text:        #ffffff;
+  --text-muted:  #b3b3b3;
+  --text-dim:    #737373;
+
+  /* Accents — THE Netflix red */
+  --accent:           #e50914;    /* Netflix red — primary CTA */
+  --accent-strong:    #b1060f;    /* darker on hover */
+  --accent-soft:      rgba(229, 9, 20, 0.16);
+  --accent-glow:      rgba(229, 9, 20, 0.45);
+
+  /* Utility states — kept minimal, used sparingly */
+  --success:          #46d369;    /* Netflix "match %" green for in-stock signals */
+  --success-soft:     rgba(70, 211, 105, 0.16);
+
+  --info:             #54b9c5;    /* Netflix teal accent */
+  --info-soft:        rgba(84, 185, 197, 0.16);
+
+  --danger:           #e87c03;    /* warning amber, NOT competing with red accent */
+  --danger-soft:      rgba(232, 124, 3, 0.16);
+
+  --whatsapp:         #25d366;
+  --whatsapp-strong:  #1ebe57;
+
+  /* Type scale (font wired via next/font on <html>) */
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+
+  /* Layout */
+  --max-w: 1280px;
+  --header-h: 132px;
+
+  /* Shadows — Netflix uses strong drops, no fancy ambient lights */
+  --shadow-card:  0 4px 14px rgba(0, 0, 0, 0.6);
+  --shadow-hover: 0 25px 60px rgba(0, 0, 0, 0.85);
+  --shadow-cta:   0 6px 20px rgba(229, 9, 20, 0.45);
+}
+
+* { box-sizing: border-box; }
+html, body { min-height: 100%; }
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-feature-settings: 'cv11', 'ss01';
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection { background: var(--accent); color: #ffffff; }
+
+/* Focus ring */
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ── Buttons ──────────────────────────────────────────────────────────── */
+.btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-md font-semibold transition-all
+         disabled:opacity-50 disabled:cursor-not-allowed select-none;
+}
+.btn-accent {
+  @apply btn h-11 px-5 text-sm text-white;
+  background: var(--accent);
+}
+.btn-accent:hover {
+  background: var(--accent-strong);
+  box-shadow: var(--shadow-cta);
+  transform: translateY(-1px);
+}
+.btn-info {
+  @apply btn h-11 px-5 text-sm text-white;
+  background: var(--bg-glass-strong);
+  border: 1px solid var(--border-strong);
+}
+.btn-info:hover { background: rgba(255,255,255,0.18); }
+
+.btn-ghost {
+  @apply btn h-11 px-5 text-sm text-white;
+  background: var(--bg-glass);
+  border: 1px solid var(--border-strong);
+  backdrop-filter: blur(8px);
+}
+.btn-ghost:hover { background: var(--bg-glass-strong); }
+
+.btn-whatsapp {
+  @apply btn h-11 px-5 text-sm font-semibold text-white;
+  background: var(--whatsapp);
+}
+.btn-whatsapp:hover { background: var(--whatsapp-strong); }
+
+/* ── Pills & badges ───────────────────────────────────────────────────── */
+.pill {
+  @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold;
+  background: var(--bg-glass);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+.badge-off {
+  @apply inline-flex items-center rounded px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white;
+  background: var(--accent);
+}
+.badge-best {
+  @apply inline-flex items-center rounded px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white;
+  background: rgba(0, 0, 0, 0.75);
+  border: 1px solid var(--border-strong);
+  backdrop-filter: blur(6px);
+}
+.badge-verified {
+  @apply inline-flex items-center gap-1 rounded px-2 py-0.5 text-[11px] font-bold;
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+/* ── Cards & surfaces ─────────────────────────────────────────────────── */
+.surface {
+  background: var(--bg-elev-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.surface-elev {
+  background: var(--bg-elev-3);
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+}
+
+/* Poster card — Netflix hover scale */
+.poster-card {
+  position: relative;
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--bg-elev-2);
+  transition: transform 220ms ease, box-shadow 220ms ease;
+  box-shadow: var(--shadow-card);
+}
+.poster-card:hover {
+  transform: scale(1.04);
+  box-shadow: var(--shadow-hover), 0 0 0 2px var(--accent);
+  z-index: 10;
+}
+
+/* Inputs */
+.input {
+  @apply h-11 w-full rounded-md px-3 text-sm text-white;
+  background: var(--bg-elev-3);
+  border: 1px solid var(--border);
+}
+.input:focus {
+  border-color: var(--accent);
+  background: rgba(31, 31, 31, 0.95);
+}
+.input::placeholder { color: var(--text-dim); }
+
+/* Hide scrollbar on horizontal rails */
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
+/* Long-form description */
+.prose-dark p, .prose-dark li {
+  color: var(--text-muted);
+  line-height: 1.7;
+}
+.prose-dark h2 {
+  color: var(--text);
+  font-weight: 700;
+  margin-top: 1.75rem;
+  margin-bottom: 0.5rem;
+  font-size: 1.5rem;
+}
+.prose-dark a { color: var(--accent); text-decoration: underline; text-underline-offset: 4px; }
+.prose-dark ul { list-style: disc; padding-left: 1.5rem; }
+
+/* ── Hero-specific ────────────────────────────────────────────────────── */
+
+/* Hero background — two stacked layers:
+   1. .hero-bg  → cinematic CSS gradient that ALWAYS renders, no network needed
+   2. .hero-bg-photo → photo enhancement via background-image inline style
+      (if the URL fails, browser silently ignores — no broken icon) */
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 35%, rgba(229, 9, 20, 0.35) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 80% 70%, rgba(124, 29, 29, 0.45) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 40% at 50% 0%, rgba(88, 28, 135, 0.35) 0%, transparent 50%),
+    linear-gradient(160deg, #1a0a0a 0%, #0a0a0a 45%, #000000 100%);
+}
+.hero-bg-photo {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center 30%;
+  background-repeat: no-repeat;
+  opacity: 0.85;
+}
+
+/* Netflix-style gradient overlay:
+   bottom-heavy black so the gradient fades to page background, slight left-fade
+   on desktop so headline text contrasts even on bright posters. */
+.hero-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(0,0,0,0.30) 0%, rgba(0,0,0,0.10) 25%, rgba(0,0,0,0.78) 78%, var(--bg) 100%),
+    linear-gradient(90deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.18) 55%, rgba(0,0,0,0) 100%);
+}
+
+/* Soft red theatrical glow behind the headline */
+.hero-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at 25% 75%, rgba(229, 9, 20, 0.18) 0%, transparent 42%);
+}
