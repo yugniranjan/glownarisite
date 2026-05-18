@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import {
@@ -9,7 +10,6 @@ import {
   Package,
   Search,
   ShieldCheck,
-  ShoppingBag,
   Sparkles,
   Tag,
   X,
@@ -24,6 +24,8 @@ const PRIMARY_NAV: NavLink[] = [
   { href: '/category/sports',  label: 'Sports' },
   { href: '/track-order',      label: 'Track order' },
 ];
+
+const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '918506965129';
 
 export default function Header() {
   const pathname = usePathname();
@@ -70,12 +72,14 @@ export default function Header() {
 
           {/* Brand */}
           <Link href="/" className="flex shrink-0 items-center gap-2">
-            <span className="grid h-9 w-9 place-items-center rounded-lg bg-accent text-white sm:h-10 sm:w-10">
-              <ShoppingBag className="h-5 w-5" />
-            </span>
-            <span className="text-base font-semibold tracking-tight sm:text-lg">
-              StreamHub
-            </span>
+            <Image
+              src="/streamhub_logo.png"
+              alt="StreamHub"
+              width={156}
+              height={44}
+              priority
+              className="h-9 w-auto sm:h-10"
+            />
           </Link>
 
           {/* Search — inline on desktop, icon trigger on mobile */}
@@ -109,7 +113,7 @@ export default function Header() {
 
           {/* Desktop primary CTA */}
           <a
-            href="https://wa.me/919999999999"
+            href={`https://wa.me/${WHATSAPP_NUMBER}`}
             className="hidden h-10 items-center gap-1.5 rounded-md bg-whatsapp px-4 text-sm font-semibold text-white hover:bg-whatsapp-strong lg:inline-flex"
             aria-label="Chat on WhatsApp"
           >
@@ -148,10 +152,13 @@ export default function Header() {
           >
             <div className="flex items-center justify-between border-b border-border px-4 py-3">
               <div className="flex items-center gap-2">
-                <span className="grid h-9 w-9 place-items-center rounded-lg bg-accent text-white">
-                  <ShoppingBag className="h-5 w-5" />
-                </span>
-                <span className="text-base font-semibold">StreamHub</span>
+                <Image
+                  src="/streamhub_logo.png"
+                  alt="StreamHub"
+                  width={156}
+                  height={44}
+                  className="h-9 w-auto"
+                />
               </div>
               <button
                 onClick={() => setDrawerOpen(false)}
@@ -206,7 +213,7 @@ export default function Header() {
 
             <div className="border-t border-border p-3">
               <a
-                href="https://wa.me/919999999999"
+                href={`https://wa.me/${WHATSAPP_NUMBER}`}
                 className="btn-whatsapp w-full"
               >
                 <MessageCircle className="h-4 w-4" />

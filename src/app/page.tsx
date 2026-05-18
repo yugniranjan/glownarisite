@@ -15,11 +15,12 @@ import {
 import ProductCard from '@/components/ProductCard';
 import Rail, { RailItem } from '@/components/Rail';
 import RatingStars from '@/components/RatingStars';
-import TrustStrip from '@/components/TrustStrip';
 import PaymentMethods from '@/components/PaymentMethods';
 import { formatMoney, getCategories, getProducts, type StreamHubProduct } from '@/lib/api';
 
 export const revalidate = 60;
+
+const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '918506965129';
 
 const SERVICE_TILES = [
   'Netflix', 'Prime', 'Hotstar', 'Spotify', 'YouTube', 'SonyLIV',
@@ -43,14 +44,7 @@ const TESTIMONIALS = [
 
 const CAT_HUES = ['#7c1d1d', '#1e3a8a', '#0f3b3b', '#581c87', '#7c2d12', '#831843'];
 
-/**
- * Hero background image. Currently using Netflix India's TRIFECTA landing
- * asset — replace with your own image before going to production (this is
- * Netflix's copyrighted asset). Local fallback at /hero-bg.svg is also
- * available if this URL ever fails.
- */
-const HERO_FALLBACK_BG =
-  'https://assets.nflxext.com/ffe/siteui/vlv3/77c412a9-62ea-48a0-a5ee-466e11e851d5/web/IN-en-20260511-TRIFECTA-perspective_f0af4f75-4cc5-42bd-b0c5-2b65b8b50e03_large.jpg';
+const HERO_BG = '/hero-section-bg.svg';
 
 export default async function HomePage() {
   const [categories, featured, products] = await Promise.all([
@@ -60,9 +54,7 @@ export default async function HomePage() {
   ]);
 
   const hero = featured.items[0] || products.items[0];
-  // ALWAYS use the local SVG — guaranteed to load, no network dependency.
-  // (To use a product's coverImage instead, change this to: hero?.coverImage || HERO_FALLBACK_BG)
-  const heroBg = HERO_FALLBACK_BG;
+  const heroBg = HERO_BG;
   const trending = featured.items.length > 0 ? featured.items : products.items.slice(0, 10);
   const newArrivals = products.items.slice(0, 12);
   const underBudget = [...products.items]
@@ -80,8 +72,6 @@ export default async function HomePage() {
     <>
       {/* ────────── HERO — Netflix.com/in landing-page style ────────── */}
       {hero && <Hero product={hero} bg={heroBg} />}
-
-      <TrustStrip />
 
       {/* ────────── Service tiles ────────── */}
       <section className="mx-auto max-w-page px-3 py-6 sm:px-4 sm:py-10">
@@ -564,7 +554,7 @@ function Testimonials() {
 
       <div className="mt-5 flex justify-center sm:mt-6">
         <a
-          href="https://wa.me/919999999999"
+          href={`https://wa.me/${WHATSAPP_NUMBER}`}
           className="inline-flex items-center gap-2 text-sm font-semibold text-text-muted hover:text-text"
         >
           <MessageCircle className="h-4 w-4 text-whatsapp" />

@@ -20,7 +20,7 @@ import { formatMoney, getProduct } from '@/lib/api';
 import RatingStars from '@/components/RatingStars';
 import PaymentMethods from '@/components/PaymentMethods';
 
-const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '919999999999';
+const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '918506965129';
 
 type ProductPageProps = { params: Promise<{ slug: string }> };
 

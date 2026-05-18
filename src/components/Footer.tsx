@@ -1,8 +1,9 @@
 import Link from 'next/link';
-import { Headphones, MessageCircle, Package, ShieldCheck, ShoppingBag, Zap } from 'lucide-react';
+import Image from 'next/image';
+import { Headphones, MessageCircle, Package, ShieldCheck, Zap } from 'lucide-react';
 import PaymentMethods from './PaymentMethods';
 
-const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '919999999999';
+const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '918506965129';
 
 export default function Footer() {
   return (
@@ -33,10 +34,13 @@ export default function Footer() {
           {/* Brand */}
           <div>
             <Link href="/" className="flex items-center gap-2.5">
-              <span className="grid h-10 w-10 place-items-center rounded-lg bg-accent text-white">
-                <ShoppingBag className="h-5 w-5" />
-              </span>
-              <span className="text-lg font-semibold tracking-tight">StreamHub</span>
+              <Image
+                src="/streamhub_logo.png"
+                alt="StreamHub"
+                width={168}
+                height={48}
+                className="h-11 w-auto"
+              />
             </Link>
             <p className="mt-3 max-w-sm text-sm leading-relaxed text-text-muted">
               India&apos;s honest source for premium OTT, music, and AI subscriptions. Verified accounts, instant delivery, real human support.

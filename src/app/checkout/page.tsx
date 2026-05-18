@@ -16,7 +16,7 @@ import {
 import { API_URL, formatMoney, getProduct, type StreamHubProduct } from '@/lib/api';
 import PaymentMethods from '@/components/PaymentMethods';
 
-const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '919999999999';
+const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '918506965129';
 
 function CheckoutInner() {
   const router = useRouter();
