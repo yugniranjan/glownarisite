@@ -182,7 +182,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
               <ol className="mt-4 space-y-3 text-sm text-text-muted">
                 {[
                   { t: 'Tap Buy now', d: 'Fill 3 fields — name, phone, email. Takes 20 seconds.' },
-                  { t: 'Pay securely', d: 'UPI, cards. SSL-encrypted payment gateway.' },
+                  { t: 'Pay securely', d: 'UPI, cards, net banking & more — secured by Razorpay.' },
                   { t: 'Get your account', d: 'Login details arrive on WhatsApp + email. Usually within 10 minutes.' },
                   { t: 'Start streaming', d: 'Use immediately. Any valid issue? We refund you.' },
                 ].map((s, i) => (

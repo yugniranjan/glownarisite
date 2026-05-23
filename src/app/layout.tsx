@@ -46,8 +46,8 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={inter.variable}>
-      <body>
+    <html lang="en" className={inter.variable} data-scroll-behavior="smooth">
+      <body className="bg-bg text-text">
         <div className="flex min-h-screen flex-col">
           <Header />
           <main className="flex-1">{children}</main>

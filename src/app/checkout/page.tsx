@@ -5,7 +5,9 @@ import { useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
 import {
   ArrowLeft,
+  Check,
   CheckCircle2,
+  Copy,
   CreditCard,
   Loader2,
   Lock,
@@ -49,6 +51,7 @@ function CheckoutInner() {
   const [notes, setNotes] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [submitting, setSubmitting] = useState(false);
+  const [verifying, setVerifying] = useState(false);
   const [razorpayEnabled, setRazorpayEnabled] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [order, setOrder] = useState<{
@@ -104,6 +107,7 @@ function CheckoutInner() {
       notes: { orderNumber: data.orderNumber },
       theme: { color: '#e50914' },
       handler: async (resp: any) => {
+        setVerifying(true);
         try {
           const vRes = await fetch(`${API_URL}/streamhub/orders/verify-payment`, {
             method: 'POST',
@@ -124,6 +128,7 @@ function CheckoutInner() {
           );
         } finally {
           setSubmitting(false);
+          setVerifying(false);
         }
       },
       modal: {
@@ -218,7 +223,15 @@ function CheckoutInner() {
           </p>
 
           <div className="mt-5 rounded-xl border border-border bg-bg-elev-1 p-4 text-left">
-            <Row label="Order number" value={<span className="font-mono">{order.orderNumber}</span>} />
+            <Row
+              label="Order number"
+              value={
+                <span className="inline-flex items-center gap-2">
+                  <span className="font-mono">{order.orderNumber}</span>
+                  <CopyButton text={order.orderNumber} />
+                </span>
+              }
+            />
             <Row label="Plan" value={product.name} />
             <Row label="Total" value={formatMoney(order.totalCents, order.currency)} />
             <Row
@@ -259,6 +272,20 @@ function CheckoutInner() {
 
   return (
     <div className="mx-auto max-w-page px-3 pb-28 pt-4 sm:px-4 sm:pb-12 sm:pt-6">
+      {verifying && (
+        <div className="fixed inset-0 z-[60] grid place-items-center bg-black/85 px-6 text-center backdrop-blur-sm">
+          <div>
+            <Loader2 className="mx-auto h-10 w-10 animate-spin text-accent" />
+            <h2 className="mt-4 text-lg font-semibold text-white sm:text-xl">
+              Confirming your payment…
+            </h2>
+            <p className="mt-1.5 text-sm text-text-muted">
+              Please don&apos;t close or refresh this page.
+            </p>
+          </div>
+        </div>
+      )}
+
       <Link
         href={`/products/${product.slug}`}
         className="inline-flex items-center gap-1.5 text-xs font-semibold text-text-muted hover:text-text sm:text-sm"
@@ -490,6 +517,29 @@ function Field({
       {children}
       {hint && <span className="mt-1 block text-[11px] text-text-muted">{hint}</span>}
     </label>
+  );
+}
+
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <button
+      type="button"
+      aria-label="Copy order number"
+      onClick={async () => {
+        try {
+          await navigator.clipboard.writeText(text);
+          setCopied(true);
+          setTimeout(() => setCopied(false), 1500);
+        } catch {
+          /* clipboard unavailable — ignore */
+        }
+      }}
+      className="inline-flex items-center gap-1 rounded-md border border-border bg-bg-elev-3 px-2 py-1 text-[11px] font-semibold text-text-muted transition-colors hover:text-text"
+    >
+      {copied ? <Check className="h-3.5 w-3.5 text-success" /> : <Copy className="h-3.5 w-3.5" />}
+      {copied ? 'Copied' : 'Copy'}
+    </button>
   );
 }
 

@@ -59,7 +59,9 @@
 }
 
 * { box-sizing: border-box; }
-html, body { min-height: 100%; }
+/* Background set on BOTH html and body so the page canvas is always black —
+   never rely solely on body→canvas propagation (can vary across builds/browsers). */
+html, body { min-height: 100%; background: var(--bg); }
 html { scroll-behavior: smooth; }
 
 body {

@@ -39,7 +39,7 @@ const FAQS = [
   ['How fast is delivery?', 'Most orders are activated in under 10 minutes after payment confirmation. Some plans require a 1–2 hour manual setup — we always tell you upfront on the product page.'],
   ['Are these accounts safe to use?', 'Yes. All accounts are verified, fully personal, and come with Refund for Any Valid Issue. We never ask for your existing account credentials.'],
   ['Can I track my order?', 'Yes. After ordering you get an order number — use the Track Order page or your WhatsApp confirmation to see status at any time.'],
-  ['What payment methods do you accept?', 'UPI, GPay, PhonePe, Paytm, all major credit/debit cards and RuPay via secure payment gateway.'],
+  ['What payment methods do you accept?', 'All payments are processed securely through Razorpay — UPI, credit/debit cards, net banking, wallets and more.'],
   ['What if the account stops working?', 'Reach us on WhatsApp within the validity period — we refund you, no questions asked. That\'s our Refund for Any Valid Issue policy.'],
 ];
 
@@ -130,35 +130,32 @@ export default async function HomePage() {
             </p>
             <h2 className="mt-1 text-xl font-semibold sm:text-2xl">Find what you actually want</h2>
           </div>
-          <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3 md:grid-cols-4 lg:grid-cols-5">
             {categories.map((c, i) => {
               const hue = CAT_HUES[i % CAT_HUES.length];
               return (
                 <Link
                   key={c.id}
                   href={`/category/${c.slug}`}
-                  className="group relative aspect-[5/3] overflow-hidden rounded-md border border-border p-4 transition-transform hover:-translate-y-0.5"
+                  className="group relative flex min-h-[84px] flex-col justify-between overflow-hidden rounded-lg border border-border p-3 transition-transform hover:-translate-y-0.5 sm:min-h-[92px] sm:p-3.5"
                   style={{ background: `linear-gradient(135deg, ${hue}, #0a0a0a)` }}
                 >
                   {c.badge && (
                     <CategoryBadge
                       label={c.badge}
                       color={c.badgeColor}
-                      className="absolute right-2.5 top-2.5 z-10"
+                      className="absolute right-2 top-2 z-10"
                     />
                   )}
-                  <div className="text-[10px] font-semibold uppercase tracking-wider text-white/75">
-                    Category
-                  </div>
-                  <div className="mt-1 text-lg font-semibold leading-tight text-white sm:text-xl">
+                  <div className="pr-10 text-sm font-semibold leading-tight text-white sm:text-base">
                     {c.name}
                   </div>
-                  <div className="absolute bottom-3 left-4 text-xs font-medium text-white/65">
+                  <div className="mt-2 text-[11px] font-medium text-white/65">
                     {productCounts[c.slug] || 0} plans
                   </div>
                   <div
                     aria-hidden
-                    className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white/10 blur-2xl transition-opacity group-hover:opacity-80"
+                    className="absolute -right-5 -top-5 h-16 w-16 rounded-full bg-white/10 blur-2xl transition-opacity group-hover:opacity-80"
                   />
                 </Link>
               );

@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import { Clock3, Film, ShieldCheck } from 'lucide-react';
 import { formatMoney, type StreamHubProduct } from '@/lib/api';
-import RatingStars from './RatingStars';
 
 interface Props {
   product: StreamHubProduct;
@@ -9,21 +8,9 @@ interface Props {
   poster?: boolean;
 }
 
-/**
- * Synthetic rating: stable per product so it looks real but isn't faked random
- * on each render. Pull from API once that field exists.
- */
-function ratingFor(p: StreamHubProduct) {
-  const seed = (p.id || p.slug || '').split('').reduce((a, c) => a + c.charCodeAt(0), 0);
-  const r = 4.2 + ((seed % 70) / 100);  // 4.2 – 4.89
-  const c = 480 + (seed % 7800);
-  return { value: Math.round(r * 10) / 10, count: c };
-}
-
 export default function ProductCard({ product, poster }: Props) {
   const save = product.compareAtCents ? Math.max(product.compareAtCents - product.priceCents, 0) : 0;
   const savePct = product.compareAtCents ? Math.round((save / product.compareAtCents) * 100) : 0;
-  const { value: rating, count: reviewCount } = ratingFor(product);
 
   return (
     <article className="poster-card flex h-full flex-col">
@@ -59,21 +46,16 @@ export default function ProductCard({ product, poster }: Props) {
           )}
         </div>
 
-        {/* Category label */}
-        {product.category?.name && (
-          <span className="absolute right-2.5 top-2.5 inline-flex items-center rounded-full bg-black/55 px-2 py-0.5 text-[10px] font-medium text-white/90 backdrop-blur">
-            {product.category.name}
-          </span>
-        )}
-
-        {/* Title + rating overlay */}
+        {/* Title + category overlay */}
         <div className="absolute inset-x-0 bottom-0 p-3 sm:p-3.5">
           <h3 className="line-clamp-2 text-[15px] font-semibold leading-tight text-white drop-shadow-sm sm:text-base">
             {product.name}
           </h3>
-          <div className="mt-1.5">
-            <RatingStars value={rating} count={reviewCount} compact size="xs" />
-          </div>
+          {product.category?.name && (
+            <div className="mt-1 text-xs font-medium text-white/70 drop-shadow-sm">
+              {product.category.name}
+            </div>
+          )}
         </div>
       </Link>
 
