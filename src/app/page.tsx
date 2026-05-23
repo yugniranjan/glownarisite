@@ -5,18 +5,26 @@ import {
   ChevronDown,
   IndianRupee,
   MessageCircle,
-  Play,
   ShieldCheck,
   Sparkles,
-  Star,
-  Users,
   Zap,
 } from 'lucide-react';
 import ProductCard from '@/components/ProductCard';
 import Rail, { RailItem } from '@/components/Rail';
 import RatingStars from '@/components/RatingStars';
 import PaymentMethods from '@/components/PaymentMethods';
-import { formatMoney, getCategories, getProducts, type StreamHubProduct } from '@/lib/api';
+import SocialProofRibbon from '@/components/SocialProofRibbon';
+import CategoryBadge from '@/components/CategoryBadge';
+import {
+  compactCount,
+  formatMoney,
+  getCategories,
+  getProducts,
+  getSocialProof,
+  plusCount,
+  type SocialProof,
+  type StreamHubProduct,
+} from '@/lib/api';
 
 export const revalidate = 60;
 
@@ -29,17 +37,17 @@ const SERVICE_TILES = [
 
 const FAQS = [
   ['How fast is delivery?', 'Most orders are activated in under 10 minutes after payment confirmation. Some plans require a 1–2 hour manual setup — we always tell you upfront on the product page.'],
-  ['Are these accounts safe to use?', 'Yes. All accounts are verified, fully personal, and come with a 7-day replacement guarantee. We never ask for your existing account credentials.'],
+  ['Are these accounts safe to use?', 'Yes. All accounts are verified, fully personal, and come with Refund for Any Valid Issue. We never ask for your existing account credentials.'],
   ['Can I track my order?', 'Yes. After ordering you get an order number — use the Track Order page or your WhatsApp confirmation to see status at any time.'],
-  ['What payment methods do you accept?', 'UPI, GPay, PhonePe, Paytm, all major credit/debit cards, RuPay and net banking via secure payment gateway.'],
-  ['What if the account stops working?', 'Reach us on WhatsApp within the validity period — we replace it free, no questions asked. That\'s our 7-day replacement guarantee.'],
+  ['What payment methods do you accept?', 'UPI, GPay, PhonePe, Paytm, all major credit/debit cards and RuPay via secure payment gateway.'],
+  ['What if the account stops working?', 'Reach us on WhatsApp within the validity period — we refund you, no questions asked. That\'s our Refund for Any Valid Issue policy.'],
 ];
 
 const TESTIMONIALS = [
   { name: 'Aman Sharma',  city: 'Pune',     rating: 5, quote: 'Ordered Netflix Premium late at night, got the login in 8 minutes. Genuine site, worth every rupee.' },
   { name: 'Riya Patel',   city: 'Mumbai',   rating: 5, quote: 'Prices feel almost too good but everything checked out. Support replied on WhatsApp in 2 minutes.' },
   { name: 'Kunal Mehta',  city: 'Bengaluru',rating: 4, quote: 'Tried 3 different OTT sites this year — StreamHub is the only one that actually delivers what they promise.' },
-  { name: 'Tanya Iyer',   city: 'Delhi',    rating: 5, quote: 'Spotify Premium for a year at this price? Done. Activation was instant, replacement promise feels reassuring.' },
+  { name: 'Tanya Iyer',   city: 'Delhi',    rating: 5, quote: 'Spotify Premium for a year at this price? Done. Activation was instant, refund promise feels reassuring.' },
 ];
 
 const CAT_HUES = ['#7c1d1d', '#1e3a8a', '#0f3b3b', '#581c87', '#7c2d12', '#831843'];
@@ -47,10 +55,11 @@ const CAT_HUES = ['#7c1d1d', '#1e3a8a', '#0f3b3b', '#581c87', '#7c2d12', '#83184
 const HERO_BG = '/hero-section-bg.svg';
 
 export default async function HomePage() {
-  const [categories, featured, products] = await Promise.all([
+  const [categories, featured, products, proof] = await Promise.all([
     getCategories(),
     getProducts({ featured: true, take: 10 }),
     getProducts({ take: 36 }),
+    getSocialProof(),
   ]);
 
   const hero = featured.items[0] || products.items[0];
@@ -71,7 +80,7 @@ export default async function HomePage() {
   return (
     <>
       {/* ────────── HERO — Netflix.com/in landing-page style ────────── */}
-      {hero && <Hero product={hero} bg={heroBg} />}
+      {hero && <Hero product={hero} bg={heroBg} proof={proof} />}
 
       {/* ────────── Service tiles ────────── */}
       <section className="mx-auto max-w-page px-3 py-6 sm:px-4 sm:py-10">
@@ -131,6 +140,13 @@ export default async function HomePage() {
                   className="group relative aspect-[5/3] overflow-hidden rounded-md border border-border p-4 transition-transform hover:-translate-y-0.5"
                   style={{ background: `linear-gradient(135deg, ${hue}, #0a0a0a)` }}
                 >
+                  {c.badge && (
+                    <CategoryBadge
+                      label={c.badge}
+                      color={c.badgeColor}
+                      className="absolute right-2.5 top-2.5 z-10"
+                    />
+                  )}
                   <div className="text-[10px] font-semibold uppercase tracking-wider text-white/75">
                     Category
                   </div>
@@ -175,7 +191,7 @@ export default async function HomePage() {
       </section>
 
       <ComparisonBlock items={products.items.slice(0, 6)} />
-      <WhyTrust />
+      <WhyTrust proof={proof} />
       <Testimonials />
 
       {/* ────────── FAQ ────────── */}
@@ -207,7 +223,7 @@ export default async function HomePage() {
               Ready to start streaming?
             </h2>
             <p className="mt-2 text-sm text-text-muted sm:text-base">
-              Pick your plan now, activate in minutes. Replacement guaranteed.
+              Pick your plan now, activate in minutes. Refund for Any Valid Issue.
             </p>
             <PaymentMethods className="mt-4" />
           </div>
@@ -226,9 +242,10 @@ interface HeroProps {
   product: StreamHubProduct;
   /** Single cinematic background image URL — fills the hero behind content. */
   bg: string;
+  proof: SocialProof;
 }
 
-function Hero({ product, bg }: HeroProps) {
+function Hero({ product, bg, proof }: HeroProps) {
   const save = product.compareAtCents ? Math.max(product.compareAtCents - product.priceCents, 0) : 0;
   const savePct = product.compareAtCents ? Math.round((save / product.compareAtCents) * 100) : 0;
 
@@ -297,7 +314,7 @@ function Hero({ product, bg }: HeroProps) {
       />
 
       {/* ── Foreground content (Netflix landing layout) ── */}
-      <div className="relative z-10 mx-auto flex min-h-[78vh] max-w-page flex-col justify-end px-4 pb-12 pt-32 sm:min-h-[88vh] sm:px-6 sm:pb-16 sm:pt-40 lg:min-h-[92vh] lg:items-center lg:justify-center lg:py-24 lg:text-center">
+      <div className="relative z-10 mx-auto flex min-h-[78vh] max-w-page flex-col justify-end px-4 pb-12 pt-16 sm:min-h-[88vh] sm:px-6 sm:pb-16 sm:pt-40 lg:min-h-[92vh] lg:items-center lg:justify-center lg:py-24 lg:text-center">
         <div className="max-w-3xl lg:mx-auto">
           {product.badge && (
             <span className="badge-best mb-3 inline-flex sm:mb-4">
@@ -306,8 +323,8 @@ function Hero({ product, bg }: HeroProps) {
           )}
 
           {/* Headline — Netflix scale */}
-          <h1 className="text-4xl font-bold leading-[1.02] tracking-tight text-white drop-shadow-[0_4px_24px_rgba(0,0,0,0.85)] sm:text-6xl md:text-7xl lg:text-[88px]">
-            Premium OTT subscriptions.
+          <h1 className="text-4xl font-bold leading-[1.02] tracking-tight text-white break-words drop-shadow-[0_4px_24px_rgba(0,0,0,0.85)] sm:text-6xl md:text-7xl lg:text-[88px]">
+            Premium OTT subscriptions.{' '}
             <br className="hidden sm:block" />
             <span className="text-accent">Honest prices.</span>
           </h1>
@@ -317,34 +334,12 @@ function Hero({ product, bg }: HeroProps) {
             instant delivery, real human support.
           </p>
 
-          {/* Trust ribbon */}
-          <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs font-medium text-white/85 sm:mt-6 sm:text-sm lg:justify-center">
-            <span className="flex items-center gap-1.5">
-              <Star className="h-4 w-4 fill-accent text-accent" />
-              4.8 from 8.2k reviews
-            </span>
-            <span className="hidden text-white/30 sm:inline">·</span>
-            <span className="flex items-center gap-1.5">
-              <Users className="h-4 w-4 text-success" />
-              50,000+ orders delivered
-            </span>
-            <span className="hidden text-white/30 sm:inline">·</span>
-            <span className="flex items-center gap-1.5">
-              <Zap className="h-4 w-4 text-info" />
-              Under 10 min activation
-            </span>
-          </div>
+          {/* Trust ribbon — admin-controlled social proof */}
+          <SocialProofRibbon proof={proof} tone="hero" className="mt-4 sm:mt-6 lg:justify-center" />
 
-          {/* CTAs */}
-          <div className="mt-6 flex flex-col gap-3 sm:mt-8 sm:flex-row lg:justify-center">
-            <Link
-              href={`/checkout?product=${product.slug}`}
-              className="btn-accent !h-14 !px-7 text-base"
-            >
-              <Play className="h-5 w-5 fill-current" />
-              Buy now — {formatMoney(product.priceCents, product.currency)}
-            </Link>
-            <Link href="#products" className="btn-ghost !h-14 !px-7 text-base">
+          {/* CTA */}
+          <div className="mt-6 flex flex-col sm:mt-8 sm:flex-row lg:justify-center">
+            <Link href="#products" className="btn-accent !h-14 !px-7 text-base">
               See all plans
             </Link>
           </div>
@@ -486,12 +481,12 @@ function ComparisonBlock({ items }: { items: StreamHubProduct[] }) {
 
 // ─────────── Why trust ────────────────────────────────────────────────────────
 
-function WhyTrust() {
+function WhyTrust({ proof }: { proof: SocialProof }) {
   const items = [
-    { icon: ShieldCheck, value: '50,000+', label: 'orders delivered', sub: 'Across India since 2022' },
-    { icon: Zap,         value: '< 10 min', label: 'average delivery',  sub: '93% delivered instantly' },
-    { icon: Award,       value: '4.8 ★',    label: 'from 8,200 reviews', sub: 'Verified buyer ratings' },
-    { icon: IndianRupee, value: 'Lowest',   label: 'price guarantee',    sub: 'Find lower? We match it.' },
+    { icon: ShieldCheck, value: plusCount(proof.orders),       label: 'orders delivered',                       sub: 'Across India' },
+    { icon: Zap,         value: '< 10 min',                    label: 'average delivery',                       sub: '93% delivered instantly' },
+    { icon: Award,       value: `${proof.rating} ★`,           label: `from ${compactCount(proof.reviews)} reviews`, sub: 'Verified buyer ratings' },
+    { icon: IndianRupee, value: 'Lowest',                      label: 'price guarantee',                        sub: 'Find lower? We match it.' },
   ];
 
   return (

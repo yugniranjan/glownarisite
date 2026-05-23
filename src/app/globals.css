@@ -64,6 +64,9 @@ html { scroll-behavior: smooth; }
 
 body {
   margin: 0;
+  /* Foolproof guard: never allow a stray wide element to scroll the page
+     sideways on mobile. `clip` (not `hidden`) so position:sticky still works. */
+  overflow-x: clip;
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-sans);
@@ -150,18 +153,22 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   border-radius: 8px;
 }
 
-/* Poster card — Netflix hover scale */
+/* Poster card — Netflix hover lift with soft red glow */
 .poster-card {
   position: relative;
-  border-radius: 6px;
+  border-radius: 14px;
   overflow: hidden;
   background: var(--bg-elev-2);
-  transition: transform 220ms ease, box-shadow 220ms ease;
+  border: 1px solid var(--border);
+  transition: transform 280ms cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 280ms ease, border-color 280ms ease;
   box-shadow: var(--shadow-card);
+  will-change: transform;
 }
 .poster-card:hover {
-  transform: scale(1.04);
-  box-shadow: var(--shadow-hover), 0 0 0 2px var(--accent);
+  transform: scale(1.035);
+  border-color: var(--accent-glow);
+  box-shadow: var(--shadow-hover), 0 16px 44px var(--accent-soft);
   z-index: 10;
 }
 

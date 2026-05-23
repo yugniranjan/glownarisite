@@ -4,7 +4,7 @@ const ITEMS = [
   { icon: ShieldCheck, label: 'Verified accounts', sub: '100% safe & private' },
   { icon: Zap,         label: 'Instant delivery',  sub: 'Most orders < 10 min' },
   { icon: Headphones,  label: '24×7 support',      sub: 'Chat anytime, day or night' },
-  { icon: RefreshCw,   label: '7-day replacement', sub: 'Issue? We fix it free' },
+  { icon: RefreshCw,   label: 'Refund for Any Valid Issue', sub: 'Any valid issue? We refund' },
 ];
 
 /** Horizontal scroll on mobile, 4-col grid on desktop. */

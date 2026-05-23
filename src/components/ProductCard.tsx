@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Clock3, ShieldCheck } from 'lucide-react';
+import { Clock3, Film, ShieldCheck } from 'lucide-react';
 import { formatMoney, type StreamHubProduct } from '@/lib/api';
 import RatingStars from './RatingStars';
 
@@ -28,42 +28,47 @@ export default function ProductCard({ product, poster }: Props) {
   return (
     <article className="poster-card flex h-full flex-col">
       {/* Poster — vertical 3:4 aspect for streaming-feel */}
-      <Link href={`/products/${product.slug}`} className="relative block aspect-[3/4] overflow-hidden">
+      <Link
+        href={`/products/${product.slug}`}
+        className="group relative block aspect-[3/4] overflow-hidden bg-bg-elev-3"
+      >
         {product.coverImage ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={product.coverImage}
             alt={product.name}
             loading="lazy"
-            className="absolute inset-0 h-full w-full object-cover"
+            className="absolute inset-0 h-full w-full object-cover transition-transform duration-[650ms] ease-out group-hover:scale-110"
           />
         ) : (
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,184,0,0.25),transparent_50%),var(--bg-elev-3)]" />
+          <div className="absolute inset-0 grid place-items-center bg-[radial-gradient(circle_at_30%_20%,rgba(229,9,20,0.22),transparent_55%),var(--bg-elev-3)]">
+            <Film className="h-10 w-10 text-text-dim" />
+          </div>
         )}
 
         {/* Bottom fade for legibility */}
-        <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/90 via-black/50 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black via-black/55 to-transparent" />
 
         {/* Badges */}
-        <div className="absolute left-2 top-2 flex flex-wrap items-start gap-1.5">
+        <div className="absolute left-2.5 top-2.5 flex flex-wrap items-start gap-1.5">
           {product.badge && (
             <span className="badge-best">{product.badge}</span>
           )}
           {savePct >= 20 && (
-            <span className="badge-off">{savePct}% OFF</span>
+            <span className="badge-off shadow-lg shadow-black/30">{savePct}% OFF</span>
           )}
         </div>
 
         {/* Category label */}
         {product.category?.name && (
-          <span className="absolute right-2 top-2 inline-flex items-center rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-medium text-white backdrop-blur">
+          <span className="absolute right-2.5 top-2.5 inline-flex items-center rounded-full bg-black/55 px-2 py-0.5 text-[10px] font-medium text-white/90 backdrop-blur">
             {product.category.name}
           </span>
         )}
 
         {/* Title + rating overlay */}
-        <div className="absolute inset-x-0 bottom-0 p-3">
-          <h3 className="line-clamp-2 text-[15px] font-semibold leading-tight text-white sm:text-base">
+        <div className="absolute inset-x-0 bottom-0 p-3 sm:p-3.5">
+          <h3 className="line-clamp-2 text-[15px] font-semibold leading-tight text-white drop-shadow-sm sm:text-base">
             {product.name}
           </h3>
           <div className="mt-1.5">
@@ -96,22 +101,22 @@ export default function ProductCard({ product, poster }: Props) {
         </div>
 
         {save > 0 && (
-          <div className="-mt-1 text-xs font-semibold text-success">
-            You save {formatMoney(save, product.currency)}
-          </div>
+          <span className="-mt-1 inline-flex w-fit items-center rounded-md bg-success-soft px-2 py-0.5 text-[11px] font-bold text-success">
+            Save {formatMoney(save, product.currency)}
+          </span>
         )}
 
         {!poster && (
-          <ul className="space-y-1 text-[11px] text-text-muted sm:text-xs">
+          <ul className="space-y-1.5 text-[11px] text-text-muted sm:text-xs">
             {product.durationDays && (
               <li className="flex items-center gap-1.5">
-                <Clock3 className="h-3.5 w-3.5 text-success" />
+                <Clock3 className="h-3.5 w-3.5 shrink-0 text-success" />
                 {product.durationDays} days validity
               </li>
             )}
             <li className="flex items-center gap-1.5">
-              <ShieldCheck className="h-3.5 w-3.5 text-info" />
-              Verified · 7-day replacement
+              <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-info" />
+              Verified · Refund for Any Valid Issue
             </li>
           </ul>
         )}

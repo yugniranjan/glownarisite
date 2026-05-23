@@ -3,6 +3,8 @@ export interface StreamHubCategory {
   name: string;
   slug: string;
   description: string | null;
+  badge: string | null;
+  badgeColor: string | null;
   isActive: boolean;
   sortOrder: number;
 }
@@ -37,12 +39,17 @@ export interface Paginated<T> {
   skip: number;
 }
 
+export interface StreamHubStats {
+  deliveredOrders: number;
+  totalOrders: number;
+}
+
 export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
 
 const demoCategories: StreamHubCategory[] = [
-  { id: 'ott', name: 'OTT Plans', slug: 'ott-plans', description: 'Streaming subscriptions and bundles', isActive: true, sortOrder: 1 },
-  { id: 'music', name: 'Music', slug: 'music', description: 'Music and podcast apps', isActive: true, sortOrder: 2 },
-  { id: 'sports', name: 'Sports', slug: 'sports', description: 'Live match and league access', isActive: true, sortOrder: 3 },
+  { id: 'ott', name: 'OTT Plans', slug: 'ott-plans', description: 'Streaming subscriptions and bundles', badge: null, badgeColor: null, isActive: true, sortOrder: 1 },
+  { id: 'music', name: 'Music', slug: 'music', description: 'Music and podcast apps', badge: null, badgeColor: null, isActive: true, sortOrder: 2 },
+  { id: 'sports', name: 'Sports', slug: 'sports', description: 'Live match and league access', badge: null, badgeColor: null, isActive: true, sortOrder: 3 },
 ];
 
 export const demoProducts: StreamHubProduct[] = [
@@ -152,6 +159,48 @@ export async function getProduct(slug: string) {
   } catch {
     return demoProducts.find((product) => product.slug === slug) || null;
   }
+}
+
+export async function getStats(): Promise<StreamHubStats> {
+  try {
+    return await fetchJson<StreamHubStats>('/streamhub/stats');
+  } catch {
+    return { deliveredOrders: 0, totalOrders: 0 };
+  }
+}
+
+/** Admin-controlled storefront social proof, already computed by the API. */
+export interface SocialProof {
+  rating: number;
+  reviews: number;
+  orders: number;
+  activationLabel: string;
+}
+
+const SOCIAL_PROOF_FALLBACK: SocialProof = {
+  rating: 4.8,
+  reviews: 500,
+  orders: 1000,
+  activationLabel: 'Under 10 min activation',
+};
+
+export async function getSocialProof(): Promise<SocialProof> {
+  try {
+    return await fetchJson<SocialProof>('/streamhub/social-proof');
+  } catch {
+    return SOCIAL_PROOF_FALLBACK;
+  }
+}
+
+/** Compact count: 500 → "500", 1.2k, 8.2k, 12k. */
+export function compactCount(n: number) {
+  if (n >= 1000) return `${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}k`;
+  return n.toLocaleString('en-IN');
+}
+
+/** Thousands-separated with a trailing "+". 1000 → "1,000+". */
+export function plusCount(n: number) {
+  return `${n.toLocaleString('en-IN')}+`;
 }
 
 export function formatMoney(cents: number, currency = 'INR') {

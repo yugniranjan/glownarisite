@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowLeft, Star } from 'lucide-react';
 import ProductCard from '@/components/ProductCard';
+import CategoryBadge from '@/components/CategoryBadge';
 import { getCategories, getProducts } from '@/lib/api';
 
 type CategoryPageProps = { params: Promise<{ slug: string }> };
@@ -55,6 +56,9 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
 
           <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-6">
             <div>
+              {category.badge && (
+                <CategoryBadge label={category.badge} color={category.badgeColor} className="mb-2" />
+              )}
               <p className="text-[11px] font-semibold uppercase tracking-wider text-white/85">
                 Category
               </p>

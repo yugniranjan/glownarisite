@@ -16,7 +16,7 @@ import {
   Users,
   Zap,
 } from 'lucide-react';
-import { formatMoney, getProduct } from '@/lib/api';
+import { formatMoney, getProduct, getSocialProof, plusCount } from '@/lib/api';
 import RatingStars from '@/components/RatingStars';
 import PaymentMethods from '@/components/PaymentMethods';
 
@@ -41,7 +41,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
 
 export default async function ProductPage({ params }: ProductPageProps) {
   const { slug } = await params;
-  const product = await getProduct(slug);
+  const [product, proof] = await Promise.all([getProduct(slug), getSocialProof()]);
   if (!product) notFound();
 
   const message = encodeURIComponent(`Hi, I want to order ${product.name} from StreamHub.`);
@@ -94,10 +94,10 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 {product.name}
               </h1>
               <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5">
-                <RatingStars value={4.8} count={9200} compact size="sm" />
+                <RatingStars value={proof.rating} count={proof.reviews} compact size="sm" />
                 <span className="flex items-center gap-1.5 text-xs text-text-muted">
                   <Users className="h-3.5 w-3.5 text-info" />
-                  50k+ delivered
+                  {plusCount(proof.orders)} delivered
                 </span>
                 <span className="flex items-center gap-1.5 text-xs font-semibold text-success">
                   <CheckCircle2 className="h-3.5 w-3.5" />
@@ -134,7 +134,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
                   product.accountType && `${product.accountType}`,
                   product.durationDays && `${product.durationDays} days validity`,
                   'Instant delivery on WhatsApp',
-                  '7-day replacement guarantee',
+                  'Refund for Any Valid Issue',
                   '24×7 chat support',
                 ]
                   .filter(Boolean)
@@ -151,9 +151,10 @@ export default async function ProductPage({ params }: ProductPageProps) {
             {product.description && (
               <div className="mt-6 rounded-xl border border-border bg-bg-elev-2 p-4 sm:mt-8 sm:p-6">
                 <h2 className="text-base font-semibold sm:text-lg">About this plan</h2>
-                <p className="prose-dark mt-3 text-sm sm:text-[15px]">
-                  {product.description}
-                </p>
+                <div
+                  className="prose-dark mt-3 text-sm sm:text-[15px]"
+                  dangerouslySetInnerHTML={{ __html: product.description }}
+                />
               </div>
             )}
 
@@ -162,7 +163,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
               {[
                 { icon: ShieldCheck, label: '100% safe' },
                 { icon: Zap,         label: 'Instant activation' },
-                { icon: RefreshCw,   label: '7-day replacement' },
+                { icon: RefreshCw,   label: 'Refund for Any Valid Issue' },
                 { icon: Headphones,  label: '24×7 support' },
               ].map(({ icon: Icon, label }) => (
                 <div
@@ -181,9 +182,9 @@ export default async function ProductPage({ params }: ProductPageProps) {
               <ol className="mt-4 space-y-3 text-sm text-text-muted">
                 {[
                   { t: 'Tap Buy now', d: 'Fill 3 fields — name, phone, email. Takes 20 seconds.' },
-                  { t: 'Pay securely', d: 'UPI, cards, net banking. SSL-encrypted payment gateway.' },
+                  { t: 'Pay securely', d: 'UPI, cards. SSL-encrypted payment gateway.' },
                   { t: 'Get your account', d: 'Login details arrive on WhatsApp + email. Usually within 10 minutes.' },
-                  { t: 'Start streaming', d: 'Use immediately. Issues? We replace free for 7 days.' },
+                  { t: 'Start streaming', d: 'Use immediately. Any valid issue? We refund you.' },
                 ].map((s, i) => (
                   <li key={s.t} className="flex gap-3">
                     <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-accent-soft text-xs font-bold text-accent">
@@ -265,8 +266,8 @@ export default async function ProductPage({ params }: ProductPageProps) {
               <div className="mt-4 flex items-start gap-2 rounded-lg bg-success-soft p-3 text-xs text-success">
                 <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" />
                 <span>
-                  <strong>7-day replacement guarantee.</strong> If your account stops working within
-                  7 days, message us and we&apos;ll replace it free.
+                  <strong>Refund for Any Valid Issue.</strong> If your account stops working,
+                  message us and we&apos;ll refund you.
                 </span>
               </div>
             </div>

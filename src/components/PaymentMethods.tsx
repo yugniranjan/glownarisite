@@ -17,4 +17,4 @@ export default function PaymentMethods({ className = '' }: { className?: string 
   );
 }
 
-const METHODS = ['UPI', 'GPay', 'PhonePe', 'Paytm', 'Visa', 'Mastercard', 'Rupay', 'Net Banking'];
+const METHODS = ['UPI', 'GPay', 'PhonePe', 'Paytm', 'Visa', 'Mastercard', 'Rupay'];
