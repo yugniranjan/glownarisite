@@ -203,6 +203,14 @@ export function plusCount(n: number) {
   return `${n.toLocaleString('en-IN')}+`;
 }
 
+export async function getPaymentConfig(): Promise<{ razorpayEnabled: boolean }> {
+  try {
+    return await fetchJson<{ razorpayEnabled: boolean }>('/streamhub/payment-config');
+  } catch {
+    return { razorpayEnabled: false };
+  }
+}
+
 export function formatMoney(cents: number, currency = 'INR') {
   return new Intl.NumberFormat('en-IN', {
     style: 'currency',

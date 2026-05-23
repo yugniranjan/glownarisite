@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
 import {
   ArrowLeft,
@@ -13,13 +13,31 @@ import {
   ShieldCheck,
   Zap,
 } from 'lucide-react';
-import { API_URL, formatMoney, getProduct, type StreamHubProduct } from '@/lib/api';
+import { API_URL, formatMoney, getPaymentConfig, getProduct, type StreamHubProduct } from '@/lib/api';
 import PaymentMethods from '@/components/PaymentMethods';
 
 const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '918506965129';
 
+declare global {
+  interface Window {
+    Razorpay?: new (options: Record<string, unknown>) => { open: () => void; on: (e: string, cb: (r: unknown) => void) => void };
+  }
+}
+
+/** Lazy-load the Razorpay Checkout script once. */
+function loadRazorpayScript(): Promise<boolean> {
+  return new Promise((resolve) => {
+    if (typeof window === 'undefined') return resolve(false);
+    if (window.Razorpay) return resolve(true);
+    const s = document.createElement('script');
+    s.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    s.onload = () => resolve(true);
+    s.onerror = () => resolve(false);
+    document.body.appendChild(s);
+  });
+}
+
 function CheckoutInner() {
-  const router = useRouter();
   const params = useSearchParams();
   const slug = params.get('product');
 
@@ -31,12 +49,14 @@ function CheckoutInner() {
   const [notes, setNotes] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [submitting, setSubmitting] = useState(false);
+  const [razorpayEnabled, setRazorpayEnabled] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [order, setOrder] = useState<{
     orderNumber: string;
     totalCents: number;
     currency: string;
     status: string;
+    paid: boolean;
   } | null>(null);
 
   useEffect(() => {
@@ -48,6 +68,77 @@ function CheckoutInner() {
       .then((p) => setProduct(p))
       .finally(() => setLoading(false));
   }, [slug]);
+
+  useEffect(() => {
+    getPaymentConfig().then((c) => setRazorpayEnabled(c.razorpayEnabled)).catch(() => {});
+  }, []);
+
+  function finishOrder(data: any, paid: boolean) {
+    setOrder({
+      orderNumber: data.orderNumber,
+      totalCents: data.totalCents,
+      currency: data.currency || product?.currency || 'INR',
+      status: data.status,
+      paid,
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  async function payWithRazorpay(data: any) {
+    const ready = await loadRazorpayScript();
+    if (!ready || !window.Razorpay) {
+      setError('Could not load the payment gateway. Please retry or confirm on WhatsApp.');
+      setSubmitting(false);
+      return;
+    }
+    const p = data.payment;
+    const rzp = new window.Razorpay({
+      key: p.razorpayKeyId,
+      order_id: p.razorpayOrderId,
+      amount: p.amount,
+      currency: p.currency,
+      name: 'StreamHub',
+      description: product?.name,
+      image: '/streamhub_logo.png',
+      prefill: { name: name.trim(), email: email.trim(), contact: phone.trim() },
+      notes: { orderNumber: data.orderNumber },
+      theme: { color: '#e50914' },
+      handler: async (resp: any) => {
+        try {
+          const vRes = await fetch(`${API_URL}/streamhub/orders/verify-payment`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              razorpayOrderId: resp.razorpay_order_id,
+              razorpayPaymentId: resp.razorpay_payment_id,
+              razorpaySignature: resp.razorpay_signature,
+            }),
+          });
+          const vData = await vRes.json();
+          if (!vRes.ok) throw new Error(vData?.error || 'Payment verification failed');
+          finishOrder(vData, true);
+        } catch (err: any) {
+          setError(
+            err?.message ||
+              'Payment received but verification failed. Message us on WhatsApp with your order number.',
+          );
+        } finally {
+          setSubmitting(false);
+        }
+      },
+      modal: {
+        ondismiss: () => {
+          setSubmitting(false);
+          setError('Payment cancelled. Your order is reserved — pay again or confirm on WhatsApp.');
+        },
+      },
+    });
+    rzp.on('payment.failed', (resp: any) => {
+      setError(resp?.error?.description || 'Payment failed. Please try again.');
+      setSubmitting(false);
+    });
+    rzp.open();
+  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -69,16 +160,15 @@ function CheckoutInner() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || 'Order failed');
-      setOrder({
-        orderNumber: data.orderNumber,
-        totalCents: data.totalCents,
-        currency: data.currency || product.currency,
-        status: data.status,
-      });
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      if (data.payment?.provider === 'razorpay') {
+        await payWithRazorpay(data); // manages its own submitting state
+        return;
+      }
+      finishOrder(data, false); // manual / WhatsApp-confirm flow
+      setSubmitting(false);
     } catch (err: any) {
       setError(err?.message || 'Could not place order. Please try again.');
-    } finally {
       setSubmitting(false);
     }
   }
@@ -108,7 +198,9 @@ function CheckoutInner() {
   // ── Success state ──
   if (order) {
     const message = encodeURIComponent(
-      `Hi, I just placed order ${order.orderNumber} for ${product.name}. Please confirm and share next steps.`,
+      order.paid
+        ? `Hi, I just paid for order ${order.orderNumber} (${product.name}). Please share my account details.`
+        : `Hi, I just placed order ${order.orderNumber} for ${product.name}. Please confirm and share next steps.`,
     );
     return (
       <div className="mx-auto max-w-xl px-3 py-8 sm:px-4 sm:py-14">
@@ -116,9 +208,13 @@ function CheckoutInner() {
           <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-success-soft text-success">
             <CheckCircle2 className="h-8 w-8" />
           </div>
-          <h1 className="mt-5 text-2xl font-bold sm:text-3xl">Order placed!</h1>
+          <h1 className="mt-5 text-2xl font-bold sm:text-3xl">
+            {order.paid ? 'Payment successful!' : 'Order placed!'}
+          </h1>
           <p className="mt-2 text-sm text-text-muted sm:text-base">
-            Send a WhatsApp message to confirm payment and receive your account details.
+            {order.paid
+              ? 'We’ve received your payment. Your account details arrive on WhatsApp and email — usually within 10 minutes.'
+              : 'Send a WhatsApp message to confirm payment and receive your account details.'}
           </p>
 
           <div className="mt-5 rounded-xl border border-border bg-bg-elev-1 p-4 text-left">
@@ -141,7 +237,7 @@ function CheckoutInner() {
             className="btn-whatsapp mt-5 w-full"
           >
             <MessageCircle className="h-4 w-4" />
-            Confirm on WhatsApp
+            {order.paid ? 'Message us on WhatsApp' : 'Confirm on WhatsApp'}
           </a>
           <Link href="/track-order" className="btn-ghost mt-2 w-full">
             Track later
@@ -173,8 +269,9 @@ function CheckoutInner() {
 
       <h1 className="mt-3 text-2xl font-bold sm:text-3xl">Secure checkout</h1>
       <p className="mt-1 text-sm text-text-muted">
-        We&apos;ll create your order, confirm payment over WhatsApp, then deliver your account
-        details in under 10 minutes.
+        {razorpayEnabled
+          ? 'Pay securely online — your account details arrive on WhatsApp and email in under 10 minutes.'
+          : "We'll create your order, confirm payment over WhatsApp, then deliver your account details in under 10 minutes."}
       </p>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_360px]">
@@ -320,7 +417,11 @@ function CheckoutInner() {
 
             <button form="" type="submit" onClick={submit} className="btn-accent mt-4 hidden w-full lg:inline-flex" disabled={submitting}>
               {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
-              {submitting ? 'Placing order…' : `Place order — ${formatMoney(total, product.currency)}`}
+              {submitting
+                ? razorpayEnabled
+                  ? 'Opening payment…'
+                  : 'Placing order…'
+                : `${razorpayEnabled ? 'Pay' : 'Place order —'} ${formatMoney(total, product.currency)}`}
             </button>
 
             <div className="mt-4 border-t border-border pt-4">
@@ -332,8 +433,9 @@ function CheckoutInner() {
 
             <p className="mt-4 flex items-start gap-2 text-xs text-text-muted">
               <CreditCard className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent" />
-              You&apos;ll finalise payment after confirming on WhatsApp. We never store card details
-              on our servers.
+              {razorpayEnabled
+                ? 'Payments are processed securely by Razorpay. We never store your card details.'
+                : "You'll finalise payment after confirming on WhatsApp. We never store card details on our servers."}
             </p>
           </div>
         </aside>
@@ -360,7 +462,7 @@ function CheckoutInner() {
             className="btn-accent h-11 flex-1 !px-4 text-[14px]"
           >
             {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
-            {submitting ? 'Placing…' : 'Place order'}
+            {submitting ? (razorpayEnabled ? 'Opening…' : 'Placing…') : razorpayEnabled ? 'Pay now' : 'Place order'}
           </button>
         </div>
       </div>

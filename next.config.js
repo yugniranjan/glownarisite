@@ -12,7 +12,7 @@ const nextConfig = {
       { protocol: 'https', hostname: 'i.imgur.com' },
       { protocol: 'https', hostname: 'cdn.pixabay.com' },
       { protocol: 'https', hostname: 'assets.nflxext.com' },
-      { protocol: 'https', hostname: 'ibb.co' },
+      { protocol: 'https', hostname: 'res.cloudinary.com' },
       { protocol: 'https', hostname: 'i.ibb.co' },
     ],
   },
