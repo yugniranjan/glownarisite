@@ -39,7 +39,7 @@ const FAQS = [
   ['How fast is delivery?', 'Most orders are activated in under 10 minutes after payment confirmation. Some plans require a 1–2 hour manual setup — we always tell you upfront on the product page.'],
   ['Are these accounts safe to use?', 'Yes. All accounts are verified, fully personal, and come with Refund for Any Valid Issue. We never ask for your existing account credentials.'],
   ['Can I track my order?', 'Yes. After ordering you get an order number — use the Track Order page or your WhatsApp confirmation to see status at any time.'],
-  ['What payment methods do you accept?', 'All payments are processed securely through Razorpay — UPI, credit/debit cards, net banking, wallets and more.'],
+  ['What payment methods do you accept?', 'We accept UPI payments. Pay to the StreamHub UPI ID, submit your UTR / transaction reference, and our team verifies it before delivery.'],
   ['What if the account stops working?', 'Reach us on WhatsApp within the validity period — we refund you, no questions asked. That\'s our Refund for Any Valid Issue policy.'],
 ];
 

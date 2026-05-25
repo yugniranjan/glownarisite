@@ -203,11 +203,18 @@ export function plusCount(n: number) {
   return `${n.toLocaleString('en-IN')}+`;
 }
 
-export async function getPaymentConfig(): Promise<{ razorpayEnabled: boolean }> {
+type PaymentConfig = {
+  mode: 'utr';
+  onlineGatewayEnabled: false;
+  upiId?: string | null;
+  upiName?: string | null;
+};
+
+export async function getPaymentConfig(): Promise<PaymentConfig> {
   try {
-    return await fetchJson<{ razorpayEnabled: boolean }>('/streamhub/payment-config');
+    return await fetchJson<PaymentConfig>('/streamhub/payment-config');
   } catch {
-    return { razorpayEnabled: false };
+    return { mode: 'utr', onlineGatewayEnabled: false };
   }
 }
 

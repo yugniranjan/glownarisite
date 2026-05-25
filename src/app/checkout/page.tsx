@@ -8,35 +8,91 @@ import {
   Check,
   CheckCircle2,
   Copy,
-  CreditCard,
   Loader2,
   Lock,
   MessageCircle,
+  QrCode,
   ShieldCheck,
+  X,
   Zap,
 } from 'lucide-react';
-import { API_URL, formatMoney, getPaymentConfig, getProduct, type StreamHubProduct } from '@/lib/api';
-import PaymentMethods from '@/components/PaymentMethods';
+import {
+  API_URL, formatMoney, getPaymentConfig, getProduct, type StreamHubProduct,
+} from '@/lib/api';
 
 const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '918506965129';
+// The live UPI is configured entirely from admin settings and fetched at runtime
+// via getPaymentConfig(); there is no env/build-time UPI fallback.
+const DEFAULT_UPI_NAME = 'StreamHub';
 
-declare global {
-  interface Window {
-    Razorpay?: new (options: Record<string, unknown>) => { open: () => void; on: (e: string, cb: (r: unknown) => void) => void };
-  }
+type CheckoutField = 'name' | 'phone' | 'email' | 'quantity' | 'notes' | 'paymentUtr';
+type CheckoutErrors = Partial<Record<CheckoutField, string>>;
+
+function normalizeName(value: string) {
+  return value.trim().replace(/\s+/g, ' ');
 }
 
-/** Lazy-load the Razorpay Checkout script once. */
-function loadRazorpayScript(): Promise<boolean> {
-  return new Promise((resolve) => {
-    if (typeof window === 'undefined') return resolve(false);
-    if (window.Razorpay) return resolve(true);
-    const s = document.createElement('script');
-    s.src = 'https://checkout.razorpay.com/v1/checkout.js';
-    s.onload = () => resolve(true);
-    s.onerror = () => resolve(false);
-    document.body.appendChild(s);
-  });
+function normalizePhone(value: string) {
+  let digits = value.replace(/\D/g, '');
+  if (digits.length === 11 && digits.startsWith('0')) digits = digits.slice(1);
+  if (digits.length === 12 && digits.startsWith('91')) digits = digits.slice(2);
+  return digits.length === 10 ? `+91${digits}` : value.trim();
+}
+
+function normalizeUtrInput(value: string) {
+  return value.replace(/\s+/g, '').toUpperCase();
+}
+
+function validateCheckout(values: {
+  name: string;
+  phone: string;
+  email: string;
+  quantity: number;
+  notes: string;
+  paymentUtr: string;
+}) {
+  const normalized = {
+    name: normalizeName(values.name),
+    phone: normalizePhone(values.phone),
+    email: values.email.trim(),
+    quantity: Number(values.quantity),
+    notes: values.notes.trim(),
+    paymentUtr: normalizeUtrInput(values.paymentUtr),
+  };
+  const errors: CheckoutErrors = {};
+  const phoneDigits = normalized.phone.replace(/\D/g, '').replace(/^91/, '');
+
+  if (normalized.name.length < 2) {
+    errors.name = 'Enter your full name.';
+  } else if (normalized.name.length > 80) {
+    errors.name = 'Name can be up to 80 characters.';
+  } else if (!/^[\p{L}][\p{L}\s.'-]*$/u.test(normalized.name)) {
+    errors.name = 'Name can contain letters, spaces, dot, apostrophe, or hyphen.';
+  }
+
+  if (!/^[6-9]\d{9}$/.test(phoneDigits)) {
+    errors.phone = 'Enter a valid 10-digit Indian mobile number.';
+  }
+
+  if (normalized.email && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(normalized.email)) {
+    errors.email = 'Enter a valid email address.';
+  }
+
+  if (!Number.isInteger(normalized.quantity) || normalized.quantity < 1 || normalized.quantity > 5) {
+    errors.quantity = 'Choose a quantity between 1 and 5.';
+  }
+
+  if (normalized.notes.length > 500) {
+    errors.notes = 'Notes can be up to 500 characters.';
+  }
+
+  if (!normalized.paymentUtr) {
+    errors.paymentUtr = 'Enter your UTR / transaction reference after payment.';
+  } else if (!/^[A-Z0-9-]{6,40}$/.test(normalized.paymentUtr)) {
+    errors.paymentUtr = 'UTR must be 6-40 characters using letters, numbers, or hyphen.';
+  }
+
+  return { errors, normalized };
 }
 
 function CheckoutInner() {
@@ -49,18 +105,34 @@ function CheckoutInner() {
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [notes, setNotes] = useState('');
+  const [paymentUtr, setPaymentUtr] = useState('');
   const [quantity, setQuantity] = useState(1);
+  const [botTrap, setBotTrap] = useState('');
+  const [checkoutStartedAt, setCheckoutStartedAt] = useState(() => Date.now());
   const [submitting, setSubmitting] = useState(false);
-  const [verifying, setVerifying] = useState(false);
-  const [razorpayEnabled, setRazorpayEnabled] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<CheckoutErrors>({});
+  const [paymentNotice, setPaymentNotice] = useState<string | null>(null);
+  const [showQr, setShowQr] = useState(false);
+  const [qrImageFailed, setQrImageFailed] = useState(false);
   const [order, setOrder] = useState<{
     orderNumber: string;
     totalCents: number;
     currency: string;
     status: string;
-    paid: boolean;
+    paymentUtr: string;
   } | null>(null);
+  const [upiId, setUpiId] = useState('');
+  const [upiName, setUpiName] = useState(DEFAULT_UPI_NAME);
+
+  useEffect(() => {
+    getPaymentConfig()
+      .then((cfg) => {
+        if (cfg.upiId) setUpiId(cfg.upiId);
+        if (cfg.upiName) setUpiName(cfg.upiName);
+      })
+      .catch(() => undefined);
+  }, []);
 
   useEffect(() => {
     if (!slug) {
@@ -68,114 +140,106 @@ function CheckoutInner() {
       return;
     }
     getProduct(slug)
-      .then((p) => setProduct(p))
+      .then((p) => {
+        setProduct(p);
+        setCheckoutStartedAt(Date.now());
+      })
       .finally(() => setLoading(false));
   }, [slug]);
 
-  useEffect(() => {
-    getPaymentConfig().then((c) => setRazorpayEnabled(c.razorpayEnabled)).catch(() => {});
-  }, []);
-
-  function finishOrder(data: any, paid: boolean) {
+  function finishOrder(data: any) {
     setOrder({
       orderNumber: data.orderNumber,
       totalCents: data.totalCents,
       currency: data.currency || product?.currency || 'INR',
       status: data.status,
-      paid,
+      paymentUtr: data.paymentUtr || paymentUtr.trim(),
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  async function payWithRazorpay(data: any) {
-    const ready = await loadRazorpayScript();
-    if (!ready || !window.Razorpay) {
-      setError('Could not load the payment gateway. Please retry or confirm on WhatsApp.');
-      setSubmitting(false);
-      return;
-    }
-    const p = data.payment;
-    const rzp = new window.Razorpay({
-      key: p.razorpayKeyId,
-      order_id: p.razorpayOrderId,
-      amount: p.amount,
-      currency: p.currency,
-      name: 'StreamHub',
-      description: product?.name,
-      image: '/streamhub_logo.png',
-      prefill: { name: name.trim(), email: email.trim(), contact: phone.trim() },
-      notes: { orderNumber: data.orderNumber },
-      theme: { color: '#e50914' },
-      handler: async (resp: any) => {
-        setVerifying(true);
-        try {
-          const vRes = await fetch(`${API_URL}/streamhub/orders/verify-payment`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              razorpayOrderId: resp.razorpay_order_id,
-              razorpayPaymentId: resp.razorpay_payment_id,
-              razorpaySignature: resp.razorpay_signature,
-            }),
-          });
-          const vData = await vRes.json();
-          if (!vRes.ok) throw new Error(vData?.error || 'Payment verification failed');
-          finishOrder(vData, true);
-        } catch (err: any) {
-          setError(
-            err?.message ||
-              'Payment received but verification failed. Message us on WhatsApp with your order number.',
-          );
-        } finally {
-          setSubmitting(false);
-          setVerifying(false);
-        }
-      },
-      modal: {
-        ondismiss: () => {
-          setSubmitting(false);
-          setError('Payment cancelled. Your order is reserved — pay again or confirm on WhatsApp.');
-        },
-      },
-    });
-    rzp.on('payment.failed', (resp: any) => {
-      setError(resp?.error?.description || 'Payment failed. Please try again.');
-      setSubmitting(false);
-    });
-    rzp.open();
-  }
-
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
+  async function submit(e?: React.FormEvent | React.MouseEvent) {
+    e?.preventDefault();
     if (!product) return;
     setError(null);
+    const { errors, normalized } = validateCheckout({
+      name,
+      phone,
+      email,
+      quantity,
+      notes,
+      paymentUtr,
+    });
+    setFieldErrors(errors);
+    const firstError = Object.values(errors)[0];
+    if (firstError) {
+      setError(firstError);
+      return;
+    }
+
+    setName(normalized.name);
+    setPhone(normalized.phone);
+    setEmail(normalized.email);
+    setNotes(normalized.notes);
+    setPaymentUtr(normalized.paymentUtr);
     setSubmitting(true);
     try {
       const res = await fetch(`${API_URL}/streamhub/orders`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          customerName: name.trim(),
-          phone: phone.trim(),
-          email: email.trim() || null,
+          customerName: normalized.name,
+          phone: normalized.phone,
+          email: normalized.email || null,
           productId: product.id,
-          quantity,
-          notes: notes.trim() || null,
+          quantity: normalized.quantity,
+          paymentUtr: normalized.paymentUtr,
+          paymentUpiId: upiId || null,
+          notes: normalized.notes || null,
+          checkoutStartedAt,
+          botTrap,
         }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || 'Order failed');
 
-      if (data.payment?.provider === 'razorpay') {
-        await payWithRazorpay(data); // manages its own submitting state
-        return;
-      }
-      finishOrder(data, false); // manual / WhatsApp-confirm flow
+      finishOrder(data);
       setSubmitting(false);
     } catch (err: any) {
       setError(err?.message || 'Could not place order. Please try again.');
       setSubmitting(false);
     }
+  }
+
+  async function copyPaymentDetails(totalCents: number, currency: string) {
+    if (!upiId) return;
+    try {
+      await navigator.clipboard.writeText(
+        `UPI ID: ${upiId}\nName: ${upiName}\nAmount: ${formatMoney(totalCents, currency)}`,
+      );
+    } catch {
+      /* clipboard may be blocked; the visible UPI ID is still copyable */
+    }
+  }
+
+  async function openUpiPayment(upiUrl: string, totalCents: number, currency: string) {
+    setError(null);
+    setQrImageFailed(false);
+    if (!upiId || !upiUrl) {
+      setPaymentNotice('UPI ID abhi configure nahi hai. Admin settings me current UPI set karo.');
+      return;
+    }
+
+    await copyPaymentDetails(totalCents, currency);
+    setShowQr(true);
+    setPaymentNotice('UPI app open karne ki koshish ho rahi hai. Details clipboard me copy ho gayi hain.');
+
+    window.location.href = upiUrl;
+    window.setTimeout(() => {
+      setPaymentNotice(
+        'Agar UPI app open nahi hua, apne PhonePe/GPay/Paytm app me UPI ID paste karke exact amount pay kar do.',
+      );
+    }, 900);
   }
 
   if (loading) {
@@ -203,9 +267,7 @@ function CheckoutInner() {
   // ── Success state ──
   if (order) {
     const message = encodeURIComponent(
-      order.paid
-        ? `Hi, I just paid for order ${order.orderNumber} (${product.name}). Please share my account details.`
-        : `Hi, I just placed order ${order.orderNumber} for ${product.name}. Please confirm and share next steps.`,
+      `Hi, I submitted payment for order ${order.orderNumber} (${product.name}). UTR: ${order.paymentUtr}. Please verify and share my account details.`,
     );
     return (
       <div className="mx-auto max-w-xl px-3 py-8 sm:px-4 sm:py-14">
@@ -213,13 +275,9 @@ function CheckoutInner() {
           <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-success-soft text-success">
             <CheckCircle2 className="h-8 w-8" />
           </div>
-          <h1 className="mt-5 text-2xl font-bold sm:text-3xl">
-            {order.paid ? 'Payment successful!' : 'Order placed!'}
-          </h1>
+          <h1 className="mt-5 text-2xl font-bold sm:text-3xl">Order submitted!</h1>
           <p className="mt-2 text-sm text-text-muted sm:text-base">
-            {order.paid
-              ? 'We’ve received your payment. Your account details arrive on WhatsApp and email — usually within 10 minutes.'
-              : 'Send a WhatsApp message to confirm payment and receive your account details.'}
+            We&apos;ve received your UTR. Our team will verify payment and deliver your account details on WhatsApp.
           </p>
 
           <div className="mt-5 rounded-xl border border-border bg-bg-elev-1 p-4 text-left">
@@ -234,6 +292,10 @@ function CheckoutInner() {
             />
             <Row label="Plan" value={product.name} />
             <Row label="Total" value={formatMoney(order.totalCents, order.currency)} />
+            <Row
+              label="UTR"
+              value={<span className="font-mono">{order.paymentUtr}</span>}
+            />
             <Row
               label="Status"
               value={
@@ -250,14 +312,14 @@ function CheckoutInner() {
             className="btn-whatsapp mt-5 w-full"
           >
             <MessageCircle className="h-4 w-4" />
-            {order.paid ? 'Message us on WhatsApp' : 'Confirm on WhatsApp'}
+            Send UTR on WhatsApp
           </a>
           <Link href="/track-order" className="btn-ghost mt-2 w-full">
             Track later
           </Link>
 
           <p className="mt-5 text-xs text-text-muted">
-            We&apos;ve also queued an email update. Most orders activate in under 10 minutes.
+            Keep your payment screenshot handy. Most verified orders activate in under 10 minutes.
           </p>
         </div>
       </div>
@@ -269,18 +331,78 @@ function CheckoutInner() {
     ? Math.max(product.compareAtCents - product.priceCents, 0)
     : 0;
   const total = product.priceCents * quantity;
+  const upiAmount = (total / 100).toFixed(2);
+  const upiUrl = upiId
+    ? `upi://pay?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(upiName)}&am=${upiAmount}&cu=${product.currency}&tn=${encodeURIComponent(`StreamHub ${product.name}`)}`
+    : '';
+  const qrImageUrl = upiUrl
+    ? `https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=12&data=${encodeURIComponent(upiUrl)}`
+    : '';
 
   return (
     <div className="mx-auto max-w-page px-3 pb-28 pt-4 sm:px-4 sm:pb-12 sm:pt-6">
-      {verifying && (
-        <div className="fixed inset-0 z-[60] grid place-items-center bg-black/85 px-6 text-center backdrop-blur-sm">
-          <div>
-            <Loader2 className="mx-auto h-10 w-10 animate-spin text-accent" />
-            <h2 className="mt-4 text-lg font-semibold text-white sm:text-xl">
-              Confirming your payment…
-            </h2>
-            <p className="mt-1.5 text-sm text-text-muted">
-              Please don&apos;t close or refresh this page.
+      {showQr && (
+        <div className="fixed inset-0 z-[70] grid place-items-center bg-black/85 px-3 backdrop-blur-sm">
+          <div className="w-full max-w-sm rounded-xl border border-border bg-bg-elev-2 p-4 shadow-soft sm:p-5">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <div className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-accent">
+                  <QrCode className="h-4 w-4" />
+                  Scan and pay
+                </div>
+                <h2 className="mt-1 text-lg font-semibold text-text">
+                  {formatMoney(total, product.currency)}
+                </h2>
+              </div>
+              <button
+                type="button"
+                aria-label="Close QR code"
+                onClick={() => setShowQr(false)}
+                className="grid h-9 w-9 shrink-0 place-items-center rounded-md border border-border bg-bg-elev-3 text-text-muted hover:text-text"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="mt-4 rounded-lg bg-white p-3">
+              {qrImageUrl && !qrImageFailed ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={qrImageUrl}
+                  alt="UPI payment QR code"
+                  className="mx-auto aspect-square w-full max-w-[300px]"
+                  onError={() => setQrImageFailed(true)}
+                />
+              ) : (
+                <div className="grid aspect-square place-items-center rounded-md bg-zinc-100 p-5 text-center text-sm font-semibold text-zinc-800">
+                  QR load nahi hua. UPI ID copy karke manually pay karein.
+                </div>
+              )}
+            </div>
+
+            <div className="mt-4 rounded-lg border border-border bg-bg-elev-1 p-3 text-sm">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-text-muted">UPI ID</span>
+                <span className="min-w-0 truncate font-mono font-semibold">{upiId}</span>
+              </div>
+              <div className="mt-2 flex items-center justify-between gap-3">
+                <span className="text-text-muted">Amount</span>
+                <span className="font-semibold">{formatMoney(total, product.currency)}</span>
+              </div>
+            </div>
+
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <CopyButton text={upiId} label="Copy UPI" />
+              <button
+                type="button"
+                onClick={() => openUpiPayment(upiUrl, total, product.currency)}
+                className="btn-whatsapp h-9 px-3 text-xs"
+              >
+                Open app
+              </button>
+            </div>
+            <p className="mt-3 text-xs leading-relaxed text-text-muted">
+              Payment ke baad app me dikhne wala UTR / reference number niche form me paste karein.
             </p>
           </div>
         </div>
@@ -296,14 +418,23 @@ function CheckoutInner() {
 
       <h1 className="mt-3 text-2xl font-bold sm:text-3xl">Secure checkout</h1>
       <p className="mt-1 text-sm text-text-muted">
-        {razorpayEnabled
-          ? 'Pay securely online — your account details arrive on WhatsApp and email in under 10 minutes.'
-          : "We'll create your order, confirm payment over WhatsApp, then deliver your account details in under 10 minutes."}
+        Pay with UPI, enter your UTR / transaction reference, and our team will verify it before delivery.
       </p>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_360px]">
         {/* ─── Form ─── */}
-        <form onSubmit={submit} className="rounded-xl border border-border bg-bg-elev-2 p-4 sm:p-6">
+        <form onSubmit={submit} noValidate className="rounded-xl border border-border bg-bg-elev-2 p-4 sm:p-6">
+          <div className="hidden" aria-hidden="true">
+            <label>
+              Website
+              <input
+                tabIndex={-1}
+                autoComplete="off"
+                value={botTrap}
+                onChange={(e) => setBotTrap(e.target.value)}
+              />
+            </label>
+          </div>
           <h2 className="text-base font-semibold sm:text-lg">Your details</h2>
           <p className="mt-1 text-xs text-text-muted">
             We only use these to deliver your order. No spam, ever.
@@ -316,52 +447,100 @@ function CheckoutInner() {
           )}
 
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            <Field label="Full name" required>
+            <Field label="Full name" required error={fieldErrors.name}>
               <input
-                className="input"
+                className={`input ${fieldErrors.name ? 'border-danger' : ''}`}
                 required
                 placeholder="e.g. Anita Rao"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) => {
+                  setName(e.target.value);
+                  if (fieldErrors.name) setFieldErrors((prev) => ({ ...prev, name: undefined }));
+                }}
+                maxLength={80}
+                aria-invalid={Boolean(fieldErrors.name)}
                 autoComplete="name"
                 inputMode="text"
                 autoCapitalize="words"
               />
             </Field>
-            <Field label="Phone number" required>
+            <Field label="Phone number" required error={fieldErrors.phone}>
               <input
-                className="input"
+                className={`input ${fieldErrors.phone ? 'border-danger' : ''}`}
                 required
                 placeholder="+91 9999 99 9999"
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                onChange={(e) => {
+                  setPhone(e.target.value);
+                  if (fieldErrors.phone) setFieldErrors((prev) => ({ ...prev, phone: undefined }));
+                }}
+                maxLength={18}
+                aria-invalid={Boolean(fieldErrors.phone)}
                 autoComplete="tel"
                 inputMode="tel"
-                pattern="^\+?\d[\d\s\-]{6,}$"
               />
             </Field>
           </div>
 
           <div className="mt-4">
-            <Field label="Email" hint="For receipts and order updates">
+            <Field label="Email" hint="For receipts and order updates" error={fieldErrors.email}>
               <input
                 type="email"
-                className="input"
+                className={`input ${fieldErrors.email ? 'border-danger' : ''}`}
                 placeholder="you@example.com"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (fieldErrors.email) setFieldErrors((prev) => ({ ...prev, email: undefined }));
+                }}
+                maxLength={120}
+                aria-invalid={Boolean(fieldErrors.email)}
                 autoComplete="email"
                 inputMode="email"
               />
             </Field>
           </div>
 
+          <div className="mt-4 rounded-lg border border-border bg-bg-elev-1 p-4">
+            <div className="text-xs font-semibold uppercase tracking-wider text-text-dim">
+              Payment step
+            </div>
+            <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
+              <Field label="UPI ID">
+                <div className="flex gap-2">
+                  <input className="input font-mono" value={upiId || 'UPI ID not configured'} readOnly />
+                  {upiId && <CopyButton text={upiId} />}
+                </div>
+              </Field>
+              <button
+                type="button"
+                onClick={() => openUpiPayment(upiUrl, total, product.currency)}
+                disabled={!upiId}
+                className="btn-whatsapp h-11 whitespace-nowrap disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Pay {formatMoney(total, product.currency)}
+              </button>
+            </div>
+            {paymentNotice && (
+              <div className="mt-3 rounded-md border border-info/30 bg-info-soft px-3 py-2 text-xs leading-relaxed text-info">
+                {paymentNotice}
+              </div>
+            )}
+            <p className="mt-2 text-xs text-text-muted">
+              Mobile par ye button UPI app open karega. Desktop par UPI ID copy karke manually pay karein.
+            </p>
+          </div>
+
           <div className="mt-4 grid gap-4 sm:grid-cols-[120px_1fr]">
-            <Field label="Quantity">
+            <Field label="Quantity" error={fieldErrors.quantity}>
               <select
-                className="input"
+                className={`input ${fieldErrors.quantity ? 'border-danger' : ''}`}
                 value={quantity}
-                onChange={(e) => setQuantity(parseInt(e.target.value, 10))}
+                onChange={(e) => {
+                  setQuantity(parseInt(e.target.value, 10));
+                  if (fieldErrors.quantity) setFieldErrors((prev) => ({ ...prev, quantity: undefined }));
+                }}
+                aria-invalid={Boolean(fieldErrors.quantity)}
               >
                 {[1, 2, 3, 4, 5].map((n) => (
                   <option key={n} value={n}>
@@ -370,12 +549,41 @@ function CheckoutInner() {
                 ))}
               </select>
             </Field>
-            <Field label="Notes" hint="Anything we should know (preferred app, region, etc.)">
+            <Field label="Notes" hint={`${notes.length}/500 characters`} error={fieldErrors.notes}>
               <input
-                className="input"
+                className={`input ${fieldErrors.notes ? 'border-danger' : ''}`}
                 placeholder="Optional"
                 value={notes}
-                onChange={(e) => setNotes(e.target.value)}
+                onChange={(e) => {
+                  setNotes(e.target.value);
+                  if (fieldErrors.notes) setFieldErrors((prev) => ({ ...prev, notes: undefined }));
+                }}
+                maxLength={500}
+                aria-invalid={Boolean(fieldErrors.notes)}
+              />
+            </Field>
+          </div>
+
+          <div className="mt-4">
+            <Field
+              label="UTR / transaction reference"
+              hint="Example: 412345678901 or bank reference shown after UPI payment"
+              required
+              error={fieldErrors.paymentUtr}
+            >
+              <input
+                className={`input font-mono uppercase ${fieldErrors.paymentUtr ? 'border-danger' : ''}`}
+                required
+                minLength={6}
+                maxLength={40}
+                placeholder="Enter UTR after payment"
+                value={paymentUtr}
+                onChange={(e) => {
+                  setPaymentUtr(normalizeUtrInput(e.target.value));
+                  if (fieldErrors.paymentUtr) setFieldErrors((prev) => ({ ...prev, paymentUtr: undefined }));
+                }}
+                aria-invalid={Boolean(fieldErrors.paymentUtr)}
+                autoComplete="off"
               />
             </Field>
           </div>
@@ -444,25 +652,26 @@ function CheckoutInner() {
 
             <button form="" type="submit" onClick={submit} className="btn-accent mt-4 hidden w-full lg:inline-flex" disabled={submitting}>
               {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
-              {submitting
-                ? razorpayEnabled
-                  ? 'Opening payment…'
-                  : 'Placing order…'
-                : `${razorpayEnabled ? 'Pay' : 'Place order —'} ${formatMoney(total, product.currency)}`}
+              {submitting ? 'Submitting UTR…' : `Submit UTR — ${formatMoney(total, product.currency)}`}
             </button>
 
             <div className="mt-4 border-t border-border pt-4">
               <div className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-text-dim">
-                Payment options
+                Manual UPI payment
               </div>
-              <PaymentMethods />
+              <div className="rounded-lg border border-border bg-bg-elev-1 p-3">
+                <div className="text-[11px] uppercase tracking-wider text-text-dim">Pay to</div>
+                <div className="mt-1 flex items-center justify-between gap-2">
+                  <span className="truncate font-mono text-sm font-semibold">{upiId || 'Configure UPI ID'}</span>
+                  {upiId && <CopyButton text={upiId} />}
+                </div>
+                <div className="mt-2 text-xs text-text-muted">Amount: {formatMoney(total, product.currency)}</div>
+              </div>
             </div>
 
             <p className="mt-4 flex items-start gap-2 text-xs text-text-muted">
-              <CreditCard className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent" />
-              {razorpayEnabled
-                ? 'Payments are processed securely by Razorpay. We never store your card details.'
-                : "You'll finalise payment after confirming on WhatsApp. We never store card details on our servers."}
+              <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent" />
+              Orders are delivered only after manual UTR verification.
             </p>
           </div>
         </aside>
@@ -489,7 +698,7 @@ function CheckoutInner() {
             className="btn-accent h-11 flex-1 !px-4 text-[14px]"
           >
             {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
-            {submitting ? (razorpayEnabled ? 'Opening…' : 'Placing…') : razorpayEnabled ? 'Pay now' : 'Place order'}
+            {submitting ? 'Submitting…' : 'Submit UTR'}
           </button>
         </div>
       </div>
@@ -501,11 +710,13 @@ function Field({
   label,
   hint,
   required,
+  error,
   children,
 }: {
   label: string;
   hint?: string;
   required?: boolean;
+  error?: string;
   children: React.ReactNode;
 }) {
   return (
@@ -515,12 +726,16 @@ function Field({
         {required && <span className="text-danger">*</span>}
       </span>
       {children}
-      {hint && <span className="mt-1 block text-[11px] text-text-muted">{hint}</span>}
+      {error ? (
+        <span className="mt-1 block text-[11px] font-semibold text-danger">{error}</span>
+      ) : (
+        hint && <span className="mt-1 block text-[11px] text-text-muted">{hint}</span>
+      )}
     </label>
   );
 }
 
-function CopyButton({ text }: { text: string }) {
+function CopyButton({ text, label = 'Copy' }: { text: string; label?: string }) {
   const [copied, setCopied] = useState(false);
   return (
     <button
@@ -538,7 +753,7 @@ function CopyButton({ text }: { text: string }) {
       className="inline-flex items-center gap-1 rounded-md border border-border bg-bg-elev-3 px-2 py-1 text-[11px] font-semibold text-text-muted transition-colors hover:text-text"
     >
       {copied ? <Check className="h-3.5 w-3.5 text-success" /> : <Copy className="h-3.5 w-3.5" />}
-      {copied ? 'Copied' : 'Copy'}
+      {copied ? 'Copied' : label}
     </button>
   );
 }
