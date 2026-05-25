@@ -7,10 +7,8 @@ import { useEffect, useState } from 'react';
 import {
   ChevronRight,
   MessageCircle,
-  Package,
   Search,
   ShieldCheck,
-  Sparkles,
   Tag,
   X,
 } from 'lucide-react';
@@ -43,20 +41,6 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-40">
-      {/* Promo strip — always visible, very compact on mobile */}
-      <div className="bg-accent text-white">
-        <div className="mx-auto flex h-8 max-w-page items-center justify-between gap-2 overflow-hidden px-3 text-[11px] font-semibold sm:h-9 sm:text-xs">
-          <span className="flex items-center gap-1.5 truncate">
-            <Sparkles className="h-3.5 w-3.5 shrink-0" aria-hidden />
-            <span className="truncate">FLAT 10% OFF on first order with <strong>FIRST10</strong></span>
-          </span>
-          <Link href="/track-order" className="hidden shrink-0 items-center gap-1 underline-offset-2 hover:underline sm:flex">
-            <Package className="h-3.5 w-3.5" aria-hidden />
-            Track order
-          </Link>
-        </div>
-      </div>
-
       {/* Main bar — minimal on mobile, expands on desktop */}
       <div className="border-b border-border bg-bg/95 backdrop-blur supports-[backdrop-filter]:bg-bg/80">
         <div className="mx-auto flex h-14 max-w-page items-center gap-2 px-3 sm:h-16 sm:gap-3 sm:px-4">

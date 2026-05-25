@@ -182,7 +182,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 {[
                   { t: 'Tap Buy now', d: 'Fill 3 fields — name, phone, email. Takes 20 seconds.' },
                   { t: 'Pay with UPI', d: 'Send the exact amount to our UPI ID and submit your UTR / transaction reference.' },
-                  { t: 'Get your account', d: 'Login details arrive on WhatsApp + email. Usually within 10 minutes.' },
+                  { t: 'Get your account', d: 'Login details arrive on WhatsApp or email. Usually within 10 minutes.' },
                   { t: 'Start streaming', d: 'Use immediately. Any valid issue? We refund you.' },
                 ].map((s, i) => (
                   <li key={s.t} className="flex gap-3">
