@@ -39,6 +39,7 @@ export default function Footer() {
                 alt="StreamHub"
                 width={168}
                 height={48}
+                loading="eager"
                 className="h-11 w-auto"
               />
             </Link>

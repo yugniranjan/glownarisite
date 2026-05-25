@@ -218,6 +218,46 @@ export async function getPaymentConfig(): Promise<PaymentConfig> {
   }
 }
 
+export async function getPromo(): Promise<{ bannerEnabled: boolean; bannerText: string | null }> {
+  try {
+    const res = await fetch(`${API_URL}/streamhub/promo`, { next: { revalidate: 30 } });
+    if (!res.ok) throw new Error('promo failed');
+    return await res.json();
+  } catch {
+    return { bannerEnabled: false, bannerText: null };
+  }
+}
+
+export type CouponPreview = {
+  valid: boolean;
+  code?: string;
+  discountCents?: number;
+  subtotalCents?: number;
+  finalCents?: number;
+  message?: string;
+};
+
+export async function previewCoupon(body: {
+  code: string;
+  productId: string;
+  quantity: number;
+  phone?: string;
+  email?: string;
+}): Promise<CouponPreview> {
+  try {
+    const res = await fetch(`${API_URL}/streamhub/coupon/preview`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json();
+    if (!res.ok) return { valid: false, message: data?.error || 'Coupon could not be applied' };
+    return data;
+  } catch {
+    return { valid: false, message: 'Network error — try again' };
+  }
+}
+
 export function formatMoney(cents: number, currency = 'INR') {
   return new Intl.NumberFormat('en-IN', {
     style: 'currency',

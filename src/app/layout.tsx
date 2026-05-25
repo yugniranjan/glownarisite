@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import FloatingWhatsApp from '@/components/FloatingWhatsApp';
+import PromoBanner from '@/components/PromoBanner';
 import './globals.css';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
@@ -41,6 +42,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" data-scroll-behavior="smooth">
       <body className="bg-bg text-text">
         <div className="flex min-h-screen flex-col">
+          <PromoBanner />
           <Header />
           <main className="flex-1">{children}</main>
           <Footer />

@@ -2,22 +2,24 @@
 
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import {
   ArrowLeft,
   Check,
   CheckCircle2,
   Copy,
+  Info,
   Loader2,
   Lock,
   MessageCircle,
   QrCode,
   ShieldCheck,
+  Tag,
   X,
   Zap,
 } from 'lucide-react';
 import {
-  API_URL, formatMoney, getPaymentConfig, getProduct, type StreamHubProduct,
+  API_URL, formatMoney, getPaymentConfig, getProduct, previewCoupon, type StreamHubProduct,
 } from '@/lib/api';
 
 const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '918506965129';
@@ -41,6 +43,12 @@ function normalizePhone(value: string) {
 
 function normalizeUtrInput(value: string) {
   return value.replace(/\s+/g, '').toUpperCase();
+}
+
+// Display 10 digits as "98765 43210" while state stays pure digits.
+function formatPhoneDisplay(digits: string) {
+  const d = digits.slice(0, 10);
+  return d.length > 5 ? `${d.slice(0, 5)} ${d.slice(5)}` : d;
 }
 
 function validateCheckout(values: {
@@ -124,6 +132,21 @@ function CheckoutInner() {
   } | null>(null);
   const [upiId, setUpiId] = useState('');
   const [upiName, setUpiName] = useState(DEFAULT_UPI_NAME);
+  const [couponInput, setCouponInput] = useState('');
+  const [coupon, setCoupon] = useState<{ code: string; discountCents: number } | null>(null);
+  const [couponMsg, setCouponMsg] = useState('');
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [utrHelpOpen, setUtrHelpOpen] = useState(false);
+  const utrHelpRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!utrHelpOpen) return undefined;
+    function onDown(e: MouseEvent) {
+      if (utrHelpRef.current && !utrHelpRef.current.contains(e.target as Node)) setUtrHelpOpen(false);
+    }
+    document.addEventListener('mousedown', onDown);
+    return () => document.removeEventListener('mousedown', onDown);
+  }, [utrHelpOpen]);
 
   useEffect(() => {
     getPaymentConfig()
@@ -158,6 +181,44 @@ function CheckoutInner() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
+  // Discount depends on the order amount — clear it if quantity changes.
+  useEffect(() => {
+    setCoupon(null);
+    setCouponMsg('');
+  }, [quantity]);
+
+  async function applyCoupon() {
+    if (!product) return;
+    const code = couponInput.trim().toUpperCase();
+    if (!code) { setCouponMsg('Enter a coupon code'); return; }
+    setCouponLoading(true);
+    setCouponMsg('');
+    try {
+      const res = await previewCoupon({
+        code,
+        productId: product.id,
+        quantity,
+        phone: phone ? `+91${phone}` : undefined,
+        email: email || undefined,
+      });
+      if (res.valid && res.discountCents) {
+        setCoupon({ code: res.code || code, discountCents: res.discountCents });
+        setCouponMsg('');
+      } else {
+        setCoupon(null);
+        setCouponMsg(res.message || 'Coupon could not be applied');
+      }
+    } finally {
+      setCouponLoading(false);
+    }
+  }
+
+  function removeCoupon() {
+    setCoupon(null);
+    setCouponInput('');
+    setCouponMsg('');
+  }
+
   async function submit(e?: React.FormEvent | React.MouseEvent) {
     e?.preventDefault();
     if (!product) return;
@@ -178,7 +239,7 @@ function CheckoutInner() {
     }
 
     setName(normalized.name);
-    setPhone(normalized.phone);
+    setPhone(normalized.phone.replace(/\D/g, '').replace(/^91/, ''));
     setEmail(normalized.email);
     setNotes(normalized.notes);
     setPaymentUtr(normalized.paymentUtr);
@@ -195,6 +256,7 @@ function CheckoutInner() {
           quantity: normalized.quantity,
           paymentUtr: normalized.paymentUtr,
           paymentUpiId: upiId || null,
+          couponCode: coupon?.code || null,
           notes: normalized.notes || null,
           checkoutStartedAt,
           botTrap,
@@ -226,18 +288,18 @@ function CheckoutInner() {
     setError(null);
     setQrImageFailed(false);
     if (!upiId || !upiUrl) {
-      setPaymentNotice('UPI ID abhi configure nahi hai. Admin settings me current UPI set karo.');
+      setPaymentNotice('No UPI ID is configured yet. Please set the current UPI in admin settings.');
       return;
     }
 
     await copyPaymentDetails(totalCents, currency);
     setShowQr(true);
-    setPaymentNotice('UPI app open karne ki koshish ho rahi hai. Details clipboard me copy ho gayi hain.');
+    setPaymentNotice('Trying to open your UPI app. Payment details have been copied to your clipboard.');
 
     window.location.href = upiUrl;
     window.setTimeout(() => {
       setPaymentNotice(
-        'Agar UPI app open nahi hua, apne PhonePe/GPay/Paytm app me UPI ID paste karke exact amount pay kar do.',
+        'If your UPI app did not open, paste the UPI ID into PhonePe/GPay/Paytm and pay the exact amount.',
       );
     }, 900);
   }
@@ -330,7 +392,9 @@ function CheckoutInner() {
   const save = product.compareAtCents
     ? Math.max(product.compareAtCents - product.priceCents, 0)
     : 0;
-  const total = product.priceCents * quantity;
+  const subtotal = product.priceCents * quantity;
+  const discount = coupon?.discountCents ?? 0;
+  const total = subtotal - discount;
   const upiAmount = (total / 100).toFixed(2);
   const upiUrl = upiId
     ? `upi://pay?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(upiName)}&am=${upiAmount}&cu=${product.currency}&tn=${encodeURIComponent(`StreamHub ${product.name}`)}`
@@ -375,7 +439,7 @@ function CheckoutInner() {
                 />
               ) : (
                 <div className="grid aspect-square place-items-center rounded-md bg-zinc-100 p-5 text-center text-sm font-semibold text-zinc-800">
-                  QR load nahi hua. UPI ID copy karke manually pay karein.
+                  QR failed to load. Copy the UPI ID and pay manually.
                 </div>
               )}
             </div>
@@ -402,7 +466,7 @@ function CheckoutInner() {
               </button>
             </div>
             <p className="mt-3 text-xs leading-relaxed text-text-muted">
-              Payment ke baad app me dikhne wala UTR / reference number niche form me paste karein.
+              After paying, paste the UTR / reference number shown in your app into the form below.
             </p>
           </div>
         </div>
@@ -465,20 +529,35 @@ function CheckoutInner() {
               />
             </Field>
             <Field label="Phone number" required error={fieldErrors.phone}>
-              <input
-                className={`input ${fieldErrors.phone ? 'border-danger' : ''}`}
-                required
-                placeholder="+91 9999 99 9999"
-                value={phone}
-                onChange={(e) => {
-                  setPhone(e.target.value);
-                  if (fieldErrors.phone) setFieldErrors((prev) => ({ ...prev, phone: undefined }));
-                }}
-                maxLength={18}
-                aria-invalid={Boolean(fieldErrors.phone)}
-                autoComplete="tel"
-                inputMode="tel"
-              />
+              <div
+                className={`flex h-11 w-full items-stretch overflow-hidden rounded-md border bg-[var(--bg-elev-3)] transition-colors focus-within:border-[var(--accent)] ${
+                  fieldErrors.phone ? 'border-danger' : 'border-[var(--border)]'
+                }`}
+              >
+                <span className="flex select-none items-center gap-1.5 border-r border-[var(--border)] px-3 text-sm font-medium text-text-muted">
+                  <span className="text-base leading-none">🇮🇳</span>
+                  +91
+                </span>
+                <input
+                  className="min-w-0 flex-1 bg-transparent px-3 text-sm tracking-wide text-white outline-none placeholder:text-[var(--text-dim)]"
+                  required
+                  placeholder="98765 43210"
+                  value={formatPhoneDisplay(phone)}
+                  onChange={(e) => {
+                    const local = e.target.value
+                      .replace(/\D/g, '')
+                      .replace(/^0+/, '')
+                      .replace(/^91(\d{10})$/, '$1')
+                      .slice(0, 10);
+                    setPhone(local);
+                    if (fieldErrors.phone) setFieldErrors((prev) => ({ ...prev, phone: undefined }));
+                  }}
+                  maxLength={11}
+                  aria-invalid={Boolean(fieldErrors.phone)}
+                  autoComplete="tel-national"
+                  inputMode="numeric"
+                />
+              </div>
             </Field>
           </div>
 
@@ -527,7 +606,7 @@ function CheckoutInner() {
               </div>
             )}
             <p className="mt-2 text-xs text-text-muted">
-              Mobile par ye button UPI app open karega. Desktop par UPI ID copy karke manually pay karein.
+              On mobile, this button opens your UPI app. On desktop, copy the UPI ID and pay manually.
             </p>
           </div>
 
@@ -565,12 +644,21 @@ function CheckoutInner() {
           </div>
 
           <div className="mt-4">
-            <Field
-              label="UTR / transaction reference"
-              hint="Example: 412345678901 or bank reference shown after UPI payment"
-              required
-              error={fieldErrors.paymentUtr}
-            >
+            <div ref={utrHelpRef} className="relative">
+              <span className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-text">
+                UTR / transaction reference
+                <span className="text-danger">*</span>
+                <button
+                  type="button"
+                  aria-label="Where to find your UTR"
+                  onMouseEnter={() => setUtrHelpOpen(true)}
+                  onClick={() => setUtrHelpOpen((o) => !o)}
+                  className="inline-flex text-text-dim transition-colors hover:text-accent"
+                >
+                  <Info className="h-4 w-4" />
+                </button>
+              </span>
+
               <input
                 className={`input font-mono uppercase ${fieldErrors.paymentUtr ? 'border-danger' : ''}`}
                 required
@@ -578,6 +666,7 @@ function CheckoutInner() {
                 maxLength={40}
                 placeholder="Enter UTR after payment"
                 value={paymentUtr}
+                aria-label="UTR / transaction reference"
                 onChange={(e) => {
                   setPaymentUtr(normalizeUtrInput(e.target.value));
                   if (fieldErrors.paymentUtr) setFieldErrors((prev) => ({ ...prev, paymentUtr: undefined }));
@@ -585,7 +674,57 @@ function CheckoutInner() {
                 aria-invalid={Boolean(fieldErrors.paymentUtr)}
                 autoComplete="off"
               />
-            </Field>
+
+              {fieldErrors.paymentUtr ? (
+                <span className="mt-1 block text-[11px] font-semibold text-danger">{fieldErrors.paymentUtr}</span>
+              ) : (
+                <span className="mt-1 block text-[11px] text-text-muted">
+                  Example: 412345678901 or bank reference shown after UPI payment
+                </span>
+              )}
+
+              {utrHelpOpen && (
+                <div className="absolute left-0 top-7 z-50 w-full rounded-lg border border-border bg-bg-elev-2 p-3.5 text-left shadow-xl sm:w-80">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="text-sm font-semibold text-text">Where to find your UTR</div>
+                    <button
+                      type="button"
+                      aria-label="Close"
+                      onClick={() => setUtrHelpOpen(false)}
+                      className="shrink-0 text-text-dim hover:text-text"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                  <p className="mt-1 text-xs leading-relaxed text-text-muted">
+                    The 12-digit reference for your payment — apps also call it{' '}
+                    <b className="text-text">UPI transaction ID</b>, <b className="text-text">UPI Ref No.</b> or{' '}
+                    <b className="text-text">Order ID</b>.
+                  </p>
+                  <ol className="mt-3 space-y-2 text-xs text-text-muted">
+                    {[
+                      'Open the UPI app you paid from (GPay, PhonePe, Paytm, BHIM…).',
+                      'Go to History / Transactions and open this payment.',
+                      'Find “UTR” / “UPI transaction ID” / “UPI Ref No.” — the 12-digit number.',
+                      'Copy it and paste it in the box above.',
+                    ].map((step, i) => (
+                      <li key={i} className="flex gap-2">
+                        <span className="grid h-4 w-4 shrink-0 place-items-center rounded-full bg-accent text-[10px] font-bold text-white">
+                          {i + 1}
+                        </span>
+                        <span>{step}</span>
+                      </li>
+                    ))}
+                  </ol>
+                  <div className="mt-3 space-y-1 rounded-md bg-bg-elev-3 p-2.5 text-[11px] leading-relaxed text-text-muted">
+                    <div><b className="text-text">GPay:</b> tap your photo → see all transactions → open payment</div>
+                    <div><b className="text-text">PhonePe:</b> History → open the payment</div>
+                    <div><b className="text-text">Paytm:</b> Balance &amp; History → open the payment</div>
+                    <div><b className="text-text">BHIM:</b> Transaction history → open the payment</div>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Trust row */}
@@ -627,15 +766,65 @@ function CheckoutInner() {
               </div>
             </div>
 
+            {/* Coupon */}
+            <div className="mt-4">
+              {coupon ? (
+                <div className="flex items-center justify-between rounded-lg border border-success/40 bg-success-soft px-3 py-2 text-sm">
+                  <span className="inline-flex items-center gap-1.5 font-semibold text-success">
+                    <Tag className="h-3.5 w-3.5" />
+                    {coupon.code} applied
+                  </span>
+                  <button
+                    type="button"
+                    onClick={removeCoupon}
+                    className="text-xs font-medium text-text-muted hover:text-text"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <div className="flex gap-2">
+                    <div className="flex h-10 flex-1 items-center rounded-md border border-border bg-bg-elev-3 px-2 focus-within:border-accent">
+                      <Tag className="h-4 w-4 shrink-0 text-text-dim" />
+                      <input
+                        className="min-w-0 flex-1 bg-transparent px-2 text-sm uppercase text-text outline-none placeholder:text-text-dim placeholder:normal-case"
+                        placeholder="Coupon code"
+                        value={couponInput}
+                        onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                        onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); applyCoupon(); } }}
+                        maxLength={40}
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={applyCoupon}
+                      disabled={couponLoading || !couponInput.trim()}
+                      className="btn-ghost h-10 shrink-0 px-4 text-sm disabled:opacity-50"
+                    >
+                      {couponLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Apply'}
+                    </button>
+                  </div>
+                  {couponMsg && <p className="mt-1.5 text-xs text-accent">{couponMsg}</p>}
+                </>
+              )}
+            </div>
+
             <dl className="mt-4 space-y-2.5 text-sm">
               <div className="flex justify-between text-text-muted">
                 <dt>Subtotal</dt>
-                <dd>{formatMoney(total, product.currency)}</dd>
+                <dd>{formatMoney(subtotal, product.currency)}</dd>
               </div>
               {save > 0 && (
                 <div className="flex justify-between text-success">
                   <dt>Saving</dt>
                   <dd>− {formatMoney(save * quantity, product.currency)}</dd>
+                </div>
+              )}
+              {coupon && (
+                <div className="flex justify-between text-success">
+                  <dt>Coupon ({coupon.code})</dt>
+                  <dd>− {formatMoney(discount, product.currency)}</dd>
                 </div>
               )}
               <div className="flex justify-between text-text-muted">
