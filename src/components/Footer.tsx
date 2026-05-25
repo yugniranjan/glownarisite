@@ -7,7 +7,7 @@ const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '918506965129
 
 export default function Footer() {
   return (
-    <footer className="mt-12 border-t border-border bg-bg-elev-1 pb-2 lg:pb-0">
+    <footer className="mt-8 border-t border-border bg-bg-elev-1 pb-2 sm:mt-12 lg:pb-0">
       {/* Trust band */}
       <div className="border-b border-border">
         <div className="mx-auto grid max-w-page grid-cols-2 gap-3 px-3 py-6 sm:grid-cols-4 sm:gap-4 sm:px-4 sm:py-8">
@@ -29,21 +29,21 @@ export default function Footer() {
       </div>
 
       {/* Main link grid */}
-      <div className="mx-auto max-w-page px-3 pt-6 sm:px-4 sm:py-12">
-        <div className="grid gap-8 sm:grid-cols-[1.4fr_1fr_1fr_1fr]">
+      <div className="mx-auto max-w-page px-3 pt-5 sm:px-4 sm:py-12">
+        <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr_1fr_1fr] lg:gap-8">
           {/* Brand */}
           <div>
             <Link href="/" className="flex items-center gap-2.5">
               <Image
                 src="/streamhub_logo.png"
                 alt="StreamHub"
-                width={168}
-                height={48}
+                width={260}
+                height={55}
                 loading="eager"
-                className="h-11 w-auto"
+                className="h-10 w-auto sm:h-12"
               />
             </Link>
-            <p className="mt-3 max-w-sm text-sm leading-relaxed text-text-muted">
+            <p className="mt-3 max-w-sm text-[13px] leading-6 text-text-muted sm:text-sm sm:leading-relaxed">
               India&apos;s honest source for premium OTT, music, and AI subscriptions. Verified accounts, instant delivery, real human support.
             </p>
             <div className="mt-4 flex items-center gap-2">
@@ -66,36 +66,38 @@ export default function Footer() {
             </div>
           </div>
 
-          <FooterCol
-            heading="Shop"
-            links={[
-              { label: 'OTT subscriptions', href: '/category/ott-plans' },
-              { label: 'Music & audio', href: '/category/music' },
-              { label: 'Sports', href: '/category/sports' },
-              { label: 'Trending', href: '/#trending' },
-            ]}
-          />
-          <FooterCol
-            heading="Support"
-            links={[
-              { label: 'Track order', href: '/track-order' },
-              { label: 'Refund policy', href: '/refund-policy' },
-              { label: 'FAQ', href: '/#faq' },
-            ]}
-          />
-          <FooterCol
-            heading="About"
-            links={[
-              { label: 'How we deliver', href: '/' },
-              { label: 'Why our prices', href: '/' },
-              { label: 'Privacy policy', href: '/refund-policy#privacy-policy' },
-              { label: 'Terms', href: '/terms' },
-            ]}
-          />
+          <div className="grid grid-cols-2 gap-x-5 gap-y-6 sm:grid-cols-3 lg:contents">
+            <FooterCol
+              heading="Shop"
+              links={[
+                { label: 'OTT subscriptions', href: '/category/ott-plans' },
+                { label: 'Music & audio', href: '/category/music' },
+                { label: 'Sports', href: '/category/sports' },
+                { label: 'Trending', href: '/#trending' },
+              ]}
+            />
+            <FooterCol
+              heading="Support"
+              links={[
+                { label: 'Track order', href: '/track-order' },
+                { label: 'Refund policy', href: '/refund-policy' },
+                { label: 'FAQ', href: '/#faq' },
+              ]}
+            />
+            <FooterCol
+              heading="About"
+              links={[
+                { label: 'How we deliver', href: '/' },
+                { label: 'Why our prices', href: '/' },
+                { label: 'Privacy policy', href: '/refund-policy#privacy-policy' },
+                { label: 'Terms', href: '/terms' },
+              ]}
+            />
+          </div>
         </div>
 
         {/* Payment + legal */}
-        <div className="mt-8 flex flex-col gap-4 border-t border-border pt-6 text-xs text-text-muted sm:mt-10 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-6 flex flex-col gap-4 border-t border-border pt-5 text-xs text-text-muted sm:mt-10 sm:flex-row sm:items-center sm:justify-between sm:pt-6">
           <div>
             <div className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-text-dim">
               We accept
@@ -139,13 +141,13 @@ function FooterCol({
 }) {
   return (
     <div>
-      <div className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-accent">
+      <div className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-accent sm:mb-3">
         {heading}
       </div>
-      <ul className="space-y-2">
+      <ul className="space-y-1.5 sm:space-y-2">
         {links.map((l) => (
           <li key={l.label}>
-            <Link href={l.href} className="text-sm text-text-muted hover:text-text">
+            <Link href={l.href} className="text-[13px] leading-6 text-text-muted hover:text-text sm:text-sm">
               {l.label}
             </Link>
           </li>

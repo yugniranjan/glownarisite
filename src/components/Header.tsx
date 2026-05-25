@@ -59,8 +59,8 @@ export default function Header() {
             <Image
               src="/streamhub_logo.png"
               alt="StreamHub"
-              width={156}
-              height={44}
+              width={260}
+              height={55}
               priority
               className="h-9 w-auto sm:h-10"
             />
@@ -139,8 +139,8 @@ export default function Header() {
                 <Image
                   src="/streamhub_logo.png"
                   alt="StreamHub"
-                  width={156}
-                  height={44}
+                  width={260}
+                  height={55}
                   className="h-9 w-auto"
                 />
               </div>
