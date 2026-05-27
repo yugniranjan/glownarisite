@@ -3,6 +3,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import FloatingWhatsApp from '@/components/FloatingWhatsApp';
 import PromoBanner from '@/components/PromoBanner';
+import AnalyticsTracker from '@/components/AnalyticsTracker';
 import './globals.css';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
@@ -48,6 +49,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Footer />
         </div>
         <FloatingWhatsApp />
+        <AnalyticsTracker />
       </body>
     </html>
   );

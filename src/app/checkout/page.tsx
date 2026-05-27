@@ -21,6 +21,7 @@ import {
 import {
   API_URL, formatMoney, getPaymentConfig, getProduct, previewCoupon, type StreamHubProduct,
 } from '@/lib/api';
+import { trackStreamHub } from '@/lib/analytics';
 
 const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '918506965129';
 // The live UPI is configured entirely from admin settings and fetched at runtime
@@ -138,6 +139,7 @@ function CheckoutInner() {
   const [couponLoading, setCouponLoading] = useState(false);
   const [utrHelpOpen, setUtrHelpOpen] = useState(false);
   const utrHelpRef = useRef<HTMLDivElement | null>(null);
+  const checkoutTrackedRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!utrHelpOpen) return undefined;
@@ -166,6 +168,16 @@ function CheckoutInner() {
       .then((p) => {
         setProduct(p);
         setCheckoutStartedAt(Date.now());
+        if (p && checkoutTrackedRef.current !== p.id) {
+          checkoutTrackedRef.current = p.id;
+          trackStreamHub({
+            eventType: 'checkout_started',
+            productId: p.id,
+            productSlug: p.slug,
+            productName: p.name,
+            metadata: { priceCents: p.priceCents },
+          });
+        }
       })
       .finally(() => setLoading(false));
   }, [slug]);
@@ -266,6 +278,18 @@ function CheckoutInner() {
       if (!res.ok) throw new Error(data?.error || 'Order failed');
 
       finishOrder(data);
+      trackStreamHub({
+        eventType: 'order_submitted',
+        productId: product.id,
+        productSlug: product.slug,
+        productName: product.name,
+        orderNumber: data.orderNumber,
+        metadata: {
+          totalCents: data.totalCents,
+          quantity: normalized.quantity,
+          couponApplied: Boolean(coupon?.code),
+        },
+      });
       setSubmitting(false);
     } catch (err: any) {
       setError(err?.message || 'Could not place order. Please try again.');
@@ -295,6 +319,13 @@ function CheckoutInner() {
     await copyPaymentDetails(totalCents, currency);
     setShowQr(true);
     setPaymentNotice('Trying to open your UPI app. Payment details have been copied to your clipboard.');
+    trackStreamHub({
+      eventType: 'payment_started',
+      productId: product?.id,
+      productSlug: product?.slug,
+      productName: product?.name,
+      metadata: { totalCents, currency },
+    });
 
     window.location.href = upiUrl;
     window.setTimeout(() => {

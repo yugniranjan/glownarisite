@@ -18,6 +18,7 @@ import {
 import { formatMoney, getProduct, getSocialProof, plusCount } from '@/lib/api';
 import RatingStars from '@/components/RatingStars';
 import PaymentMethods from '@/components/PaymentMethods';
+import ProductAnalytics from '@/components/ProductAnalytics';
 
 const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '918506965129';
 
@@ -50,6 +51,13 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   return (
     <>
+      <ProductAnalytics
+        productId={product.id}
+        productSlug={product.slug}
+        productName={product.name}
+        priceCents={product.priceCents}
+      />
+
       {/* Back link */}
       <div className="mx-auto max-w-page px-3 pt-4 sm:px-4 sm:pt-6">
         <Link
