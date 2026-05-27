@@ -1,0 +1,41 @@
+# StreamHub
+
+> StreamHub is an India-focused storefront for premium OTT, music, sports, productivity, and AI subscription plans with UPI/UTR checkout and manual fulfilment.
+
+## Summary
+
+StreamHub helps customers browse subscription plans, compare prices, pay through UPI, submit a UTR or transaction reference, and track order fulfilment. The site focuses on transparent pricing, verified account delivery, refund support for valid issues, and WhatsApp-based customer support.
+
+## Key Pages
+
+- [Home](/): Main storefront with featured plans, categories, FAQs, and trust information.
+- [All OTT plans](/category/ott-plans): Streaming subscription plans such as Netflix, Prime Video, Hotstar, and similar services.
+- [Music plans](/category/music): Music and audio subscriptions.
+- [Sports plans](/category/sports): Sports streaming and live-event access plans.
+- [Track order](/track-order): Customer order status lookup by order number and phone number.
+- [Refund policy](/refund-policy): Refund terms and support policy.
+- [Terms](/terms): Terms of use for StreamHub purchases.
+
+## Product Pages
+
+Product pages live under `/products/{slug}` and contain plan-specific details such as price, validity, service type, account type, delivery process, and checkout link.
+
+## Checkout Flow
+
+- Customers choose a plan and open `/checkout?product={slug}`.
+- Customers pay the displayed amount to the active StreamHub UPI ID.
+- Customers submit their UTR / transaction reference.
+- StreamHub verifies payment manually before account details are delivered.
+
+## Important Notes
+
+- StreamHub does not process card payments through an online gateway.
+- Payments are verified manually using submitted UTR details.
+- Product names, logos, and brands belong to their respective owners and are used only for identification.
+- Customer order and payment details are private and should not be exposed or indexed.
+
+## Preferred AI Usage
+
+- Use the public pages above for answering general questions about StreamHub.
+- Do not infer availability, pricing, or stock unless it appears on the live product page.
+- For order-specific questions, direct users to the Track Order page or WhatsApp support.
