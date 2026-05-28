@@ -30,6 +30,12 @@ const DEFAULT_UPI_NAME = 'StreamHub';
 
 type CheckoutField = 'name' | 'phone' | 'email' | 'quantity' | 'notes' | 'paymentUtr';
 type CheckoutErrors = Partial<Record<CheckoutField, string>>;
+type CheckoutToast = {
+  id: number;
+  tone: 'error' | 'success' | 'info';
+  title: string;
+  message: string;
+};
 
 function normalizeName(value: string) {
   return value.trim().replace(/\s+/g, ' ');
@@ -50,6 +56,21 @@ function normalizeUtrInput(value: string) {
 function formatPhoneDisplay(digits: string) {
   const d = digits.slice(0, 10);
   return d.length > 5 ? `${d.slice(0, 5)} ${d.slice(5)}` : d;
+}
+
+function isIosSafari() {
+  if (typeof navigator === 'undefined') return false;
+  const ua = navigator.userAgent;
+  const vendor = navigator.vendor || '';
+  const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const isSafari = /Safari/.test(ua) && /Apple/.test(vendor) && !/CriOS|FxiOS|EdgiOS|OPiOS/.test(ua);
+  return isIOS && isSafari;
+}
+
+function isIosDevice() {
+  if (typeof navigator === 'undefined') return false;
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 }
 
 function validateCheckout(values: {
@@ -138,8 +159,19 @@ function CheckoutInner() {
   const [couponMsg, setCouponMsg] = useState('');
   const [couponLoading, setCouponLoading] = useState(false);
   const [utrHelpOpen, setUtrHelpOpen] = useState(false);
+  const [toast, setToast] = useState<CheckoutToast | null>(null);
   const utrHelpRef = useRef<HTMLDivElement | null>(null);
   const checkoutTrackedRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!toast) return undefined;
+    const timer = window.setTimeout(() => setToast(null), toast.tone === 'error' ? 6500 : 4200);
+    return () => window.clearTimeout(timer);
+  }, [toast]);
+
+  function notify(tone: CheckoutToast['tone'], title: string, message: string) {
+    setToast({ id: Date.now(), tone, title, message });
+  }
 
   useEffect(() => {
     if (!utrHelpOpen) return undefined;
@@ -202,7 +234,11 @@ function CheckoutInner() {
   async function applyCoupon() {
     if (!product) return;
     const code = couponInput.trim().toUpperCase();
-    if (!code) { setCouponMsg('Enter a coupon code'); return; }
+    if (!code) {
+      setCouponMsg('Enter a coupon code');
+      notify('error', 'Coupon missing', 'Enter a coupon code before applying it.');
+      return;
+    }
     setCouponLoading(true);
     setCouponMsg('');
     try {
@@ -218,7 +254,9 @@ function CheckoutInner() {
         setCouponMsg('');
       } else {
         setCoupon(null);
-        setCouponMsg(res.message || 'Coupon could not be applied');
+        const message = res.message || 'Coupon could not be applied';
+        setCouponMsg(message);
+        notify('error', 'Coupon not applied', message);
       }
     } finally {
       setCouponLoading(false);
@@ -229,6 +267,14 @@ function CheckoutInner() {
     setCoupon(null);
     setCouponInput('');
     setCouponMsg('');
+  }
+
+  function showSubmitError(message: string) {
+    setError(message);
+    notify('error', 'Please fix checkout details', message);
+    window.setTimeout(() => {
+      document.getElementById('checkout-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 50);
   }
 
   async function submit(e?: React.FormEvent | React.MouseEvent) {
@@ -246,7 +292,7 @@ function CheckoutInner() {
     setFieldErrors(errors);
     const firstError = Object.values(errors)[0];
     if (firstError) {
-      setError(firstError);
+      showSubmitError(firstError);
       return;
     }
 
@@ -292,7 +338,7 @@ function CheckoutInner() {
       });
       setSubmitting(false);
     } catch (err: any) {
-      setError(err?.message || 'Could not place order. Please try again.');
+      showSubmitError(err?.message || 'Could not place order. Please try again.');
       setSubmitting(false);
     }
   }
@@ -308,17 +354,31 @@ function CheckoutInner() {
     }
   }
 
-  async function openUpiPayment(upiUrl: string, totalCents: number, currency: string) {
+  async function showPaymentQr(upiUrl: string, totalCents: number, currency: string) {
     setError(null);
     setQrImageFailed(false);
     if (!upiId || !upiUrl) {
-      setPaymentNotice('No UPI ID is configured yet. Please set the current UPI in admin settings.');
+      const message = 'No UPI ID is configured yet. Please contact support before paying.';
+      setPaymentNotice(message);
+      notify('error', 'Payment unavailable', message);
       return;
     }
 
     await copyPaymentDetails(totalCents, currency);
     setShowQr(true);
-    setPaymentNotice('Trying to open your UPI app. Payment details have been copied to your clipboard.');
+    const safari = isIosSafari();
+    setPaymentNotice(
+      safari
+        ? 'On Safari, scan this QR with another phone or copy the UPI ID and paste it in your UPI app.'
+        : 'Trying to open your UPI app. If it does not open, scan this QR or copy the UPI ID.',
+    );
+    notify(
+      'info',
+      'Pay with UPI',
+      safari
+        ? 'Scan the QR or copy the UPI ID, then paste the UTR back here.'
+        : 'Complete payment in your UPI app, then paste the UTR back here.',
+    );
     trackStreamHub({
       eventType: 'payment_started',
       productId: product?.id,
@@ -326,6 +386,24 @@ function CheckoutInner() {
       productName: product?.name,
       metadata: { totalCents, currency },
     });
+
+    if (!safari) {
+      window.location.href = upiUrl;
+      window.setTimeout(() => {
+        setPaymentNotice(
+          'If your UPI app did not open, scan the QR code or paste the UPI ID into PhonePe/GPay/Paytm.',
+        );
+      }, 900);
+    }
+  }
+
+  function openUpiApp(upiUrl: string) {
+    if (!upiUrl) return;
+    setPaymentNotice(
+      isIosDevice()
+        ? 'iPhone may open one available UPI app instead of showing all apps. If it is not your preferred app, copy the UPI ID and pay manually.'
+        : 'Opening your UPI app.',
+    );
 
     window.location.href = upiUrl;
     window.setTimeout(() => {
@@ -433,9 +511,11 @@ function CheckoutInner() {
   const qrImageUrl = upiUrl
     ? `https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=12&data=${encodeURIComponent(upiUrl)}`
     : '';
+  const safariPayment = isIosSafari();
 
   return (
     <div className="mx-auto max-w-page px-3 pb-28 pt-4 sm:px-4 sm:pb-12 sm:pt-6">
+      <CheckoutToastView toast={toast} onClose={() => setToast(null)} />
       {showQr && (
         <div className="fixed inset-0 z-[70] grid place-items-center bg-black/85 px-3 backdrop-blur-sm">
           <div className="w-full max-w-sm rounded-xl border border-border bg-bg-elev-2 p-4 shadow-soft sm:p-5">
@@ -490,12 +570,22 @@ function CheckoutInner() {
               <CopyButton text={upiId} label="Copy UPI" />
               <button
                 type="button"
-                onClick={() => openUpiPayment(upiUrl, total, product.currency)}
+                onClick={() => openUpiApp(upiUrl)}
                 className="btn-whatsapp h-9 px-3 text-xs"
               >
                 Open app
               </button>
             </div>
+            {safariPayment && (
+              <div className="mt-3 rounded-lg border border-accent/30 bg-accent-soft p-3 text-xs leading-relaxed text-accent">
+                <div className="font-semibold text-text">Safari / iPhone</div>
+                <ol className="mt-1.5 list-decimal space-y-1 pl-4">
+                  <li>Best option: scan this QR from another phone.</li>
+                  <li>Or tap Copy UPI, open GPay/PhonePe/Paytm manually, and paste the UPI ID.</li>
+                  <li>Tap Open app only if you want iPhone to try its available UPI handler.</li>
+                </ol>
+              </div>
+            )}
             <p className="mt-3 text-xs leading-relaxed text-text-muted">
               After paying, paste the UTR / reference number shown in your app into the form below.
             </p>
@@ -536,7 +626,7 @@ function CheckoutInner() {
           </p>
 
           {error && (
-            <div className="mt-4 rounded-md border border-danger/40 bg-danger-soft px-3 py-2 text-sm text-danger">
+            <div id="checkout-error" className="mt-4 rounded-md border border-danger/40 bg-danger-soft px-3 py-2 text-sm text-danger">
               {error}
             </div>
           )}
@@ -624,7 +714,7 @@ function CheckoutInner() {
               </Field>
               <button
                 type="button"
-                onClick={() => openUpiPayment(upiUrl, total, product.currency)}
+                onClick={() => showPaymentQr(upiUrl, total, product.currency)}
                 disabled={!upiId}
                 className="btn-whatsapp h-11 whitespace-nowrap disabled:cursor-not-allowed disabled:opacity-50"
               >
@@ -870,7 +960,7 @@ function CheckoutInner() {
               </div>
             </dl>
 
-            <button form="" type="submit" onClick={submit} className="btn-accent mt-4 hidden w-full lg:inline-flex" disabled={submitting}>
+            <button type="button" onClick={submit} className="btn-accent mt-4 hidden w-full lg:inline-flex" disabled={submitting}>
               {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
               {submitting ? 'Submitting UTR…' : `Submit UTR — ${formatMoney(total, product.currency)}`}
             </button>
@@ -952,6 +1042,52 @@ function Field({
         hint && <span className="mt-1 block text-[11px] text-text-muted">{hint}</span>
       )}
     </label>
+  );
+}
+
+function CheckoutToastView({ toast, onClose }: { toast: CheckoutToast | null; onClose: () => void }) {
+  if (!toast) return null;
+  const styles = {
+    error: {
+      icon: <Info className="h-4 w-4" />,
+      box: 'border-danger/40 bg-danger-soft text-danger',
+      title: 'text-danger',
+    },
+    success: {
+      icon: <CheckCircle2 className="h-4 w-4" />,
+      box: 'border-success/40 bg-success-soft text-success',
+      title: 'text-success',
+    },
+    info: {
+      icon: <Info className="h-4 w-4" />,
+      box: 'border-info/40 bg-info-soft text-info',
+      title: 'text-info',
+    },
+  }[toast.tone];
+
+  return (
+    <div className="fixed left-3 right-3 top-3 z-[95] sm:left-auto sm:right-5 sm:top-5 sm:w-[380px]">
+      <div
+        key={toast.id}
+        role="status"
+        aria-live={toast.tone === 'error' ? 'assertive' : 'polite'}
+        className={`flex items-start gap-3 rounded-xl border p-3 shadow-soft backdrop-blur ${styles.box}`}
+      >
+        <div className="mt-0.5 shrink-0">{styles.icon}</div>
+        <div className="min-w-0 flex-1">
+          <div className={`text-sm font-semibold ${styles.title}`}>{toast.title}</div>
+          <div className="mt-0.5 text-xs leading-relaxed text-text">{toast.message}</div>
+        </div>
+        <button
+          type="button"
+          onClick={onClose}
+          className="grid h-7 w-7 shrink-0 place-items-center rounded-md text-text-muted hover:bg-bg-glass hover:text-text"
+          aria-label="Close notification"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      </div>
+    </div>
   );
 }
 
