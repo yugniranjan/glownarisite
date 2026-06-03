@@ -8,6 +8,7 @@ import {
   Check,
   CheckCircle2,
   Copy,
+  Download,
   Info,
   Loader2,
   Lock,
@@ -145,6 +146,7 @@ function CheckoutInner() {
   const [paymentNotice, setPaymentNotice] = useState<string | null>(null);
   const [showQr, setShowQr] = useState(false);
   const [qrImageFailed, setQrImageFailed] = useState(false);
+  const [qrDownloading, setQrDownloading] = useState(false);
   const [order, setOrder] = useState<{
     orderNumber: string;
     totalCents: number;
@@ -370,14 +372,14 @@ function CheckoutInner() {
     setPaymentNotice(
       safari
         ? 'On Safari, scan this QR with another phone or copy the UPI ID and paste it in your UPI app.'
-        : 'Trying to open your UPI app. If it does not open, scan this QR or copy the UPI ID.',
+        : 'Payment details are ready. Copy the UPI ID or scan the QR, then pay the exact amount.',
     );
     notify(
       'info',
       'Pay with UPI',
       safari
         ? 'Scan the QR or copy the UPI ID, then paste the UTR back here.'
-        : 'Complete payment in your UPI app, then paste the UTR back here.',
+        : 'UPI details copied. Pay manually if your app shows a QR/gallery warning.',
     );
     trackStreamHub({
       eventType: 'payment_started',
@@ -387,14 +389,9 @@ function CheckoutInner() {
       metadata: { totalCents, currency },
     });
 
-    if (!safari) {
-      window.location.href = upiUrl;
-      window.setTimeout(() => {
-        setPaymentNotice(
-          'If your UPI app did not open, scan the QR code or paste the UPI ID into PhonePe/GPay/Paytm.',
-        );
-      }, 900);
-    }
+    // Auto-opening UPI from browsers can make some payment apps treat the payment
+    // like a gallery QR import and show a blocking warning. Keep direct app opening
+    // as an explicit secondary action so users always have the manual fallback visible.
   }
 
   function openUpiApp(upiUrl: string) {
@@ -402,15 +399,44 @@ function CheckoutInner() {
     setPaymentNotice(
       isIosDevice()
         ? 'iPhone may open one available UPI app instead of showing all apps. If it is not your preferred app, copy the UPI ID and pay manually.'
-        : 'Opening your UPI app.',
+        : 'Trying direct UPI app. If your app shows a QR/gallery warning, tap Dismiss and pay manually with the copied UPI ID.',
     );
 
     window.location.href = upiUrl;
     window.setTimeout(() => {
       setPaymentNotice(
-        'If your UPI app did not open, paste the UPI ID into PhonePe/GPay/Paytm and pay the exact amount.',
+        'If direct app payment is blocked, open any UPI app manually, choose Pay UPI ID, paste the UPI ID, and enter the exact amount.',
       );
     }, 900);
+  }
+
+  async function downloadQrImage() {
+    if (!qrImageUrl) {
+      notify('error', 'QR unavailable', 'No UPI QR is available yet.');
+      return;
+    }
+
+    const filename = `streamhub-upi-${upiAmount.replace('.', '-')}.png`;
+    setQrDownloading(true);
+    try {
+      const response = await fetch(qrImageUrl, { cache: 'no-store' });
+      if (!response.ok) throw new Error('QR download failed');
+      const blob = await response.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = objectUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+      notify('success', 'QR downloaded', 'Use this QR to pay the exact amount.');
+    } catch {
+      window.open(qrImageUrl, '_blank', 'noopener,noreferrer');
+      notify('info', 'QR opened', 'If download is blocked, long-press the QR image and save it.');
+    } finally {
+      setQrDownloading(false);
+    }
   }
 
   if (loading) {
@@ -517,15 +543,15 @@ function CheckoutInner() {
     <div className="mx-auto max-w-page px-3 pb-28 pt-4 sm:px-4 sm:pb-12 sm:pt-6">
       <CheckoutToastView toast={toast} onClose={() => setToast(null)} />
       {showQr && (
-        <div className="fixed inset-0 z-[70] grid place-items-center bg-black/85 px-3 backdrop-blur-sm">
-          <div className="w-full max-w-sm rounded-xl border border-border bg-bg-elev-2 p-4 shadow-soft sm:p-5">
+        <div className="fixed inset-0 z-[70] grid place-items-center overflow-y-auto bg-black/85 px-3 py-4 backdrop-blur-sm">
+          <div className="w-full max-w-[350px] rounded-xl border border-border bg-bg-elev-2 p-3 shadow-soft">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <div className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-accent">
                   <QrCode className="h-4 w-4" />
-                  Scan and pay
+                  Scan or copy UPI
                 </div>
-                <h2 className="mt-1 text-lg font-semibold text-text">
+                <h2 className="mt-0.5 text-lg font-semibold text-text">
                   {formatMoney(total, product.currency)}
                 </h2>
               </div>
@@ -533,19 +559,19 @@ function CheckoutInner() {
                 type="button"
                 aria-label="Close QR code"
                 onClick={() => setShowQr(false)}
-                className="grid h-9 w-9 shrink-0 place-items-center rounded-md border border-border bg-bg-elev-3 text-text-muted hover:text-text"
+                className="grid h-8 w-8 shrink-0 place-items-center rounded-md border border-border bg-bg-elev-3 text-text-muted hover:text-text"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
 
-            <div className="mt-4 rounded-lg bg-white p-3">
+            <div className="mt-2.5 rounded-lg bg-white p-2">
               {qrImageUrl && !qrImageFailed ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={qrImageUrl}
                   alt="UPI payment QR code"
-                  className="mx-auto aspect-square w-full max-w-[300px]"
+                  className="mx-auto aspect-square w-full max-w-[200px] sm:max-w-[220px]"
                   onError={() => setQrImageFailed(true)}
                 />
               ) : (
@@ -555,26 +581,60 @@ function CheckoutInner() {
               )}
             </div>
 
-            <div className="mt-4 rounded-lg border border-border bg-bg-elev-1 p-3 text-sm">
+            <div className="mt-2.5 rounded-lg border border-border bg-bg-elev-1 px-3 py-2 text-sm">
               <div className="flex items-center justify-between gap-3">
                 <span className="text-text-muted">UPI ID</span>
                 <span className="min-w-0 truncate font-mono font-semibold">{upiId}</span>
               </div>
-              <div className="mt-2 flex items-center justify-between gap-3">
+              <div className="mt-1.5 flex items-center justify-between gap-3">
                 <span className="text-text-muted">Amount</span>
                 <span className="font-semibold">{formatMoney(total, product.currency)}</span>
               </div>
             </div>
 
-            <div className="mt-3 grid grid-cols-2 gap-2">
-              <CopyButton text={upiId} label="Copy UPI" />
-              <button
-                type="button"
-                onClick={() => openUpiApp(upiUrl)}
-                className="btn-whatsapp h-9 px-3 text-xs"
-              >
-                Open app
-              </button>
+            <div className="mt-2.5 grid gap-2">
+              <div className="grid grid-cols-[minmax(0,6fr)_minmax(0,4fr)] gap-2">
+                <CopyButton
+                  text={upiId}
+                  label="Copy UPI"
+                  className="h-10 justify-center border-border-strong bg-bg-elev-3 px-3 text-sm text-text hover:bg-bg-glass-strong"
+                />
+                <CopyButton
+                  text={upiAmount}
+                  label="Amount"
+                  className="h-10 justify-center border-border bg-bg-elev-1 px-2 text-sm text-text-muted hover:bg-bg-elev-3 hover:text-text"
+                />
+              </div>
+              <div className="grid grid-cols-[minmax(0,6fr)_minmax(0,4fr)] gap-2">
+                <button
+                  type="button"
+                  onClick={downloadQrImage}
+                  disabled={qrDownloading || !qrImageUrl}
+                  className="inline-flex h-10 items-center justify-center gap-1.5 rounded-md border border-info/30 bg-info-soft px-3 text-sm font-semibold text-info transition-colors hover:border-info/50 hover:bg-info/20 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {qrDownloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                  Download QR
+                </button>
+                <button
+                  type="button"
+                  onClick={() => openUpiApp(upiUrl)}
+                  className="inline-flex h-10 items-center justify-center rounded-md border border-border bg-bg-elev-1 px-2 text-sm font-semibold text-text-muted transition-colors hover:bg-bg-elev-3 hover:text-text"
+                >
+                  Try open app
+                </button>
+              </div>
+            </div>
+            <div className="relative mt-2.5 rounded-lg border border-danger/25 bg-danger-soft px-3 py-2 text-[11px] leading-relaxed text-danger">
+              <span
+                aria-hidden="true"
+                className="absolute -top-1.5 right-[16%] h-3 w-3 rotate-45 border-l border-t border-danger/25 bg-[#2f1a0d]"
+              />
+              <div className="font-semibold text-text">Note for Try open app</div>
+              <ol className="mt-1 list-decimal space-y-0.5 pl-4">
+                <li>Tap Dismiss in the UPI app.</li>
+                <li>Tap Copy UPI here and open any UPI app manually.</li>
+                <li>Choose Pay UPI ID, paste the UPI ID, and enter the exact amount.</li>
+              </ol>
             </div>
             {safariPayment && (
               <div className="mt-3 rounded-lg border border-accent/30 bg-accent-soft p-3 text-xs leading-relaxed text-accent">
@@ -727,7 +787,7 @@ function CheckoutInner() {
               </div>
             )}
             <p className="mt-2 text-xs text-text-muted">
-              On mobile, this button opens your UPI app. On desktop, copy the UPI ID and pay manually.
+              This opens payment details first. Direct app opening is optional because some UPI apps block browser-launched QR payments.
             </p>
           </div>
 
@@ -1091,7 +1151,7 @@ function CheckoutToastView({ toast, onClose }: { toast: CheckoutToast | null; on
   );
 }
 
-function CopyButton({ text, label = 'Copy' }: { text: string; label?: string }) {
+function CopyButton({ text, label = 'Copy', className }: { text: string; label?: string; className?: string }) {
   const [copied, setCopied] = useState(false);
   return (
     <button
@@ -1106,7 +1166,10 @@ function CopyButton({ text, label = 'Copy' }: { text: string; label?: string }) 
           /* clipboard unavailable — ignore */
         }
       }}
-      className="inline-flex items-center gap-1 rounded-md border border-border bg-bg-elev-3 px-2 py-1 text-[11px] font-semibold text-text-muted transition-colors hover:text-text"
+      className={[
+        'inline-flex items-center gap-1 rounded-md border border-border bg-bg-elev-3 px-2 py-1 text-[11px] font-semibold text-text-muted transition-colors hover:text-text',
+        className,
+      ].filter(Boolean).join(' ')}
     >
       {copied ? <Check className="h-3.5 w-3.5 text-success" /> : <Copy className="h-3.5 w-3.5" />}
       {copied ? 'Copied' : label}
