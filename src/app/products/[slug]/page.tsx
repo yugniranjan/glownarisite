@@ -19,6 +19,7 @@ import { formatMoney, getProduct, getSocialProof, plusCount } from '@/lib/api';
 import RatingStars from '@/components/RatingStars';
 import PaymentMethods from '@/components/PaymentMethods';
 import ProductAnalytics from '@/components/ProductAnalytics';
+import PendingLinkButton from '@/components/PendingLinkButton';
 
 const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '918506965129';
 
@@ -252,12 +253,12 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 />
               </dl>
 
-              <Link
+              <PendingLinkButton
                 href={`/checkout?product=${product.slug}`}
                 className="btn-accent mt-5 w-full"
               >
                 Buy now — {formatMoney(product.priceCents, product.currency)}
-              </Link>
+              </PendingLinkButton>
               <a href={whatsappUrl} className="btn-whatsapp mt-2 w-full">
                 <MessageCircle className="h-4 w-4" />
                 Chat to buy
@@ -308,12 +309,12 @@ export default async function ProductPage({ params }: ProductPageProps) {
           >
             <MessageCircle className="h-5 w-5" />
           </a>
-          <Link
+          <PendingLinkButton
             href={`/checkout?product=${product.slug}`}
             className="btn-accent h-11 flex-1 !px-4 text-[14px]"
           >
             Buy now
-          </Link>
+          </PendingLinkButton>
         </div>
       </div>
     </>

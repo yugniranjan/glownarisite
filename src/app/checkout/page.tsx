@@ -23,6 +23,7 @@ import {
   API_URL, formatMoney, getPaymentConfig, getProduct, previewCoupon, type StreamHubProduct,
 } from '@/lib/api';
 import { trackStreamHub } from '@/lib/analytics';
+import PageLoader from '@/components/PageLoader';
 
 const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '918506965129';
 // The live UPI is configured entirely from admin settings and fetched at runtime
@@ -66,12 +67,6 @@ function isIosSafari() {
   const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   const isSafari = /Safari/.test(ua) && /Apple/.test(vendor) && !/CriOS|FxiOS|EdgiOS|OPiOS/.test(ua);
   return isIOS && isSafari;
-}
-
-function isIosDevice() {
-  if (typeof navigator === 'undefined') return false;
-  return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 }
 
 function validateCheckout(values: {
@@ -379,7 +374,7 @@ function CheckoutInner() {
       'Pay with UPI',
       safari
         ? 'Scan the QR or copy the UPI ID, then paste the UTR back here.'
-        : 'UPI details copied. Pay manually if your app shows a QR/gallery warning.',
+        : 'Download the QR or copy the UPI ID, then paste the UTR back here.',
     );
     trackStreamHub({
       eventType: 'payment_started',
@@ -389,25 +384,6 @@ function CheckoutInner() {
       metadata: { totalCents, currency },
     });
 
-    // Auto-opening UPI from browsers can make some payment apps treat the payment
-    // like a gallery QR import and show a blocking warning. Keep direct app opening
-    // as an explicit secondary action so users always have the manual fallback visible.
-  }
-
-  function openUpiApp(upiUrl: string) {
-    if (!upiUrl) return;
-    setPaymentNotice(
-      isIosDevice()
-        ? 'iPhone may open one available UPI app instead of showing all apps. If it is not your preferred app, copy the UPI ID and pay manually.'
-        : 'Trying direct UPI app. If your app shows a QR/gallery warning, tap Dismiss and pay manually with the copied UPI ID.',
-    );
-
-    window.location.href = upiUrl;
-    window.setTimeout(() => {
-      setPaymentNotice(
-        'If direct app payment is blocked, open any UPI app manually, choose Pay UPI ID, paste the UPI ID, and enter the exact amount.',
-      );
-    }, 900);
   }
 
   async function downloadQrImage() {
@@ -416,13 +392,78 @@ function CheckoutInner() {
       return;
     }
 
-    const filename = `streamhub-upi-${upiAmount.replace('.', '-')}.png`;
+    const cleanProductName = (product?.name || 'subscription').replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '').toLowerCase();
+    const filename = `streamhub-${cleanProductName || 'payment'}-${upiAmount.replace('.', '-')}.png`;
     setQrDownloading(true);
+    let qrObjectUrl: string | null = null;
     try {
       const response = await fetch(qrImageUrl, { cache: 'no-store' });
       if (!response.ok) throw new Error('QR download failed');
       const blob = await response.blob();
-      const objectUrl = URL.createObjectURL(blob);
+      qrObjectUrl = URL.createObjectURL(blob);
+      const qrImage = await new Promise<HTMLImageElement>((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = qrObjectUrl || '';
+      });
+
+      const canvas = document.createElement('canvas');
+      canvas.width = 900;
+      canvas.height = 1180;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) throw new Error('Canvas unavailable');
+
+      const generatedAt = new Date().toLocaleString('en-IN', {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+        hour12: true,
+      });
+      const amountText = formatMoney(total, product?.currency || 'INR');
+      const subscriptionName = product?.name || 'StreamHub subscription';
+
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#111111';
+      ctx.font = '700 42px Arial, sans-serif';
+      ctx.fillText('StreamHub Payment QR', 70, 82);
+      ctx.fillStyle = '#666666';
+      ctx.font = '500 24px Arial, sans-serif';
+      ctx.fillText('Scan this QR and pay the exact amount shown below.', 70, 122);
+
+      const qrSize = 560;
+      const qrX = (canvas.width - qrSize) / 2;
+      ctx.drawImage(qrImage, qrX, 165, qrSize, qrSize);
+
+      const rows = [
+        ['Subscription', subscriptionName],
+        ['Amount', amountText],
+        ['UPI ID', upiId],
+        ['Generated', generatedAt],
+      ];
+
+      let y = 790;
+      ctx.strokeStyle = '#e5e5e5';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(70, 750, 760, 280);
+      rows.forEach(([label, value], index) => {
+        const rowY = y + index * 62;
+        ctx.fillStyle = '#666666';
+        ctx.font = '600 22px Arial, sans-serif';
+        ctx.fillText(label, 105, rowY);
+        ctx.fillStyle = '#111111';
+        ctx.font = label === 'UPI ID' ? '700 24px monospace' : '700 24px Arial, sans-serif';
+        const displayValue = value.length > 34 ? `${value.slice(0, 31)}...` : value;
+        ctx.fillText(displayValue, 330, rowY);
+      });
+
+      ctx.fillStyle = '#777777';
+      ctx.font = '500 20px Arial, sans-serif';
+      ctx.fillText('After payment, submit the UTR / reference number on StreamHub.', 70, 1095);
+
+      const outputBlob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png', 0.95));
+      if (!outputBlob) throw new Error('Could not create QR image');
+      const objectUrl = URL.createObjectURL(outputBlob);
       const link = document.createElement('a');
       link.href = objectUrl;
       link.download = filename;
@@ -430,21 +471,18 @@ function CheckoutInner() {
       link.click();
       link.remove();
       window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
-      notify('success', 'QR downloaded', 'Use this QR to pay the exact amount.');
+      notify('success', 'QR downloaded', 'The QR image includes amount, UPI ID, plan, date, and time.');
     } catch {
       window.open(qrImageUrl, '_blank', 'noopener,noreferrer');
       notify('info', 'QR opened', 'If download is blocked, long-press the QR image and save it.');
     } finally {
+      if (qrObjectUrl) URL.revokeObjectURL(qrObjectUrl);
       setQrDownloading(false);
     }
   }
 
   if (loading) {
-    return (
-      <div className="grid min-h-[60vh] place-items-center text-text-muted">
-        <Loader2 className="h-8 w-8 animate-spin text-accent" />
-      </div>
-    );
+    return <PageLoader label="Loading checkout..." />;
   }
 
   if (!slug || !product) {
@@ -605,36 +643,18 @@ function CheckoutInner() {
                   className="h-10 justify-center border-border bg-bg-elev-1 px-2 text-sm text-text-muted hover:bg-bg-elev-3 hover:text-text"
                 />
               </div>
-              <div className="grid grid-cols-[minmax(0,6fr)_minmax(0,4fr)] gap-2">
-                <button
-                  type="button"
-                  onClick={downloadQrImage}
-                  disabled={qrDownloading || !qrImageUrl}
-                  className="inline-flex h-10 items-center justify-center gap-1.5 rounded-md border border-info/30 bg-info-soft px-3 text-sm font-semibold text-info transition-colors hover:border-info/50 hover:bg-info/20 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {qrDownloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-                  Download QR
-                </button>
-                <button
-                  type="button"
-                  onClick={() => openUpiApp(upiUrl)}
-                  className="inline-flex h-10 items-center justify-center rounded-md border border-border bg-bg-elev-1 px-2 text-sm font-semibold text-text-muted transition-colors hover:bg-bg-elev-3 hover:text-text"
-                >
-                  Try open app
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={downloadQrImage}
+                disabled={qrDownloading || !qrImageUrl}
+                className="inline-flex h-10 items-center justify-center gap-1.5 rounded-md border border-info/30 bg-info-soft px-3 text-sm font-semibold text-info transition-colors hover:border-info/50 hover:bg-info/20 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {qrDownloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                Download QR with details
+              </button>
             </div>
-            <div className="relative mt-2.5 rounded-lg border border-danger/25 bg-danger-soft px-3 py-2 text-[11px] leading-relaxed text-danger">
-              <span
-                aria-hidden="true"
-                className="absolute -top-1.5 right-[16%] h-3 w-3 rotate-45 border-l border-t border-danger/25 bg-[#2f1a0d]"
-              />
-              <div className="font-semibold text-text">Note for Try open app</div>
-              <ol className="mt-1 list-decimal space-y-0.5 pl-4">
-                <li>Tap Dismiss in the UPI app.</li>
-                <li>Tap Copy UPI here and open any UPI app manually.</li>
-                <li>Choose Pay UPI ID, paste the UPI ID, and enter the exact amount.</li>
-              </ol>
+            <div className="mt-2.5 rounded-lg border border-info/25 bg-info-soft px-3 py-2 text-[11px] leading-relaxed text-info">
+              Downloaded QR includes UPI ID, amount, subscription name, date, and time.
             </div>
             {safariPayment && (
               <div className="mt-3 rounded-lg border border-accent/30 bg-accent-soft p-3 text-xs leading-relaxed text-accent">
@@ -642,7 +662,7 @@ function CheckoutInner() {
                 <ol className="mt-1.5 list-decimal space-y-1 pl-4">
                   <li>Best option: scan this QR from another phone.</li>
                   <li>Or tap Copy UPI, open GPay/PhonePe/Paytm manually, and paste the UPI ID.</li>
-                  <li>Tap Open app only if you want iPhone to try its available UPI handler.</li>
+                  <li>Or download the QR and upload it inside your UPI app if supported.</li>
                 </ol>
               </div>
             )}
@@ -1188,13 +1208,7 @@ function Row({ label, value }: { label: string; value: React.ReactNode }) {
 
 export default function CheckoutPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="grid min-h-[60vh] place-items-center text-text-muted">
-          <Loader2 className="h-8 w-8 animate-spin text-accent" />
-        </div>
-      }
-    >
+    <Suspense fallback={<PageLoader label="Loading checkout..." />}>
       <CheckoutInner />
     </Suspense>
   );

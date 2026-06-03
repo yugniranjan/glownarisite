@@ -7,6 +7,9 @@ import type { Config } from 'tailwindcss';
  * Current palette: Netflix-inspired (pure black + #e50914 red + white text).
  */
 const config: Config = {
+  future: {
+    hoverOnlyWhenSupported: true,
+  },
   content: ['./src/**/*.{ts,tsx}'],
   theme: {
     extend: {

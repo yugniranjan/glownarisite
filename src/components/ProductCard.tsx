@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Clock3, Film, ShieldCheck } from 'lucide-react';
 import { formatMoney, type StreamHubProduct } from '@/lib/api';
+import PendingLinkButton from '@/components/PendingLinkButton';
 
 interface Props {
   product: StreamHubProduct;
@@ -104,18 +105,18 @@ export default function ProductCard({ product, poster }: Props) {
         )}
 
         <div className="mt-auto grid grid-cols-[1fr_auto] gap-2">
-          <Link
+          <PendingLinkButton
             href={`/checkout?product=${product.slug}`}
             className="btn-accent !h-10 !px-3 text-[13px]"
           >
             Buy now
-          </Link>
-          <Link
+          </PendingLinkButton>
+          <PendingLinkButton
             href={`/products/${product.slug}`}
             className="btn-ghost !h-10 !px-3 text-[13px]"
           >
             Details
-          </Link>
+          </PendingLinkButton>
         </div>
       </div>
     </article>

@@ -15,6 +15,7 @@ import RatingStars from '@/components/RatingStars';
 import PaymentMethods from '@/components/PaymentMethods';
 import SocialProofRibbon from '@/components/SocialProofRibbon';
 import CategoryBadge from '@/components/CategoryBadge';
+import PendingLinkButton from '@/components/PendingLinkButton';
 import {
   compactCount,
   formatMoney,
@@ -379,12 +380,12 @@ function Hero({ product, bg, proof }: HeroProps) {
                   )}
                 </div>
               </div>
-              <Link
+              <PendingLinkButton
                 href={`/products/${product.slug}`}
                 className="hidden h-10 items-center rounded-md border border-border-strong bg-white/10 px-3 text-xs font-semibold text-white hover:bg-white/15 sm:inline-flex"
               >
                 Details
-              </Link>
+              </PendingLinkButton>
             </div>
           </div>
         </div>
