@@ -366,15 +366,15 @@ function CheckoutInner() {
     const safari = isIosSafari();
     setPaymentNotice(
       safari
-        ? 'On Safari, scan this QR with another phone or copy the UPI ID and paste it in your UPI app.'
-        : 'Payment details are ready. Copy the UPI ID or scan the QR, then pay the exact amount.',
+        ? 'Choose one option: scan the QR with another phone, download the QR, or copy the UPI ID and pay manually.'
+        : 'Choose one option: scan the QR, download the QR with details, or copy the UPI ID and pay manually.',
     );
     notify(
       'info',
       'Pay with UPI',
       safari
-        ? 'Scan the QR or copy the UPI ID, then paste the UTR back here.'
-        : 'Download the QR or copy the UPI ID, then paste the UTR back here.',
+        ? 'After payment, paste the UTR / reference number back here.'
+        : 'After payment, paste the UTR / reference number back here.',
     );
     trackStreamHub({
       eventType: 'payment_started',
@@ -581,15 +581,15 @@ function CheckoutInner() {
     <div className="mx-auto max-w-page px-3 pb-28 pt-4 sm:px-4 sm:pb-12 sm:pt-6">
       <CheckoutToastView toast={toast} onClose={() => setToast(null)} />
       {showQr && (
-        <div className="fixed inset-0 z-[70] grid place-items-center overflow-y-auto bg-black/85 px-3 py-4 backdrop-blur-sm">
-          <div className="w-full max-w-[350px] rounded-xl border border-border bg-bg-elev-2 p-3 shadow-soft">
+        <div className="fixed inset-0 z-[70] grid place-items-center overflow-y-auto bg-black/85 px-3 py-3 backdrop-blur-sm">
+          <div className="w-full max-w-[330px] rounded-xl border border-border bg-bg-elev-2 p-2.5 shadow-soft">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <div className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-accent">
                   <QrCode className="h-4 w-4" />
-                  Scan or copy UPI
+                  UPI payment options
                 </div>
-                <h2 className="mt-0.5 text-lg font-semibold text-text">
+                <h2 className="mt-0.5 text-base font-semibold text-text">
                   {formatMoney(total, product.currency)}
                 </h2>
               </div>
@@ -603,13 +603,13 @@ function CheckoutInner() {
               </button>
             </div>
 
-            <div className="mt-2.5 rounded-lg bg-white p-2">
+            <div className="mt-2 rounded-lg bg-white p-1.5">
               {qrImageUrl && !qrImageFailed ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={qrImageUrl}
                   alt="UPI payment QR code"
-                  className="mx-auto aspect-square w-full max-w-[200px] sm:max-w-[220px]"
+                  className="mx-auto aspect-square w-full max-w-[160px] sm:max-w-[180px]"
                   onError={() => setQrImageFailed(true)}
                 />
               ) : (
@@ -619,56 +619,82 @@ function CheckoutInner() {
               )}
             </div>
 
-            <div className="mt-2.5 rounded-lg border border-border bg-bg-elev-1 px-3 py-2 text-sm">
+            <div className="mt-2 rounded-lg border border-border bg-bg-elev-1 px-2.5 py-1.5 text-xs">
               <div className="flex items-center justify-between gap-3">
                 <span className="text-text-muted">UPI ID</span>
                 <span className="min-w-0 truncate font-mono font-semibold">{upiId}</span>
               </div>
-              <div className="mt-1.5 flex items-center justify-between gap-3">
+              <div className="mt-1 flex items-center justify-between gap-3">
                 <span className="text-text-muted">Amount</span>
                 <span className="font-semibold">{formatMoney(total, product.currency)}</span>
               </div>
             </div>
 
-            <div className="mt-2.5 grid gap-2">
+            <div className="mt-2 rounded-lg border border-border bg-bg-elev-1 px-2.5 py-2">
+              <div className="text-[10px] font-semibold uppercase tracking-wider text-text-dim">
+                Choose one option
+              </div>
+              <div className="mt-1.5 grid gap-1.5 text-[11px] leading-tight">
+                <div className="flex gap-1.5">
+                  <QrCode className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent" />
+                  <div>
+                    <div className="font-semibold text-text">Scan QR</div>
+                    <div className="text-text-muted">Use another phone or UPI scanner.</div>
+                  </div>
+                </div>
+                <div className="flex gap-1.5">
+                  <Download className="mt-0.5 h-3.5 w-3.5 shrink-0 text-info" />
+                  <div>
+                    <div className="font-semibold text-text">Download QR</div>
+                    <div className="text-text-muted">Open UPI app, choose Gallery, select QR.</div>
+                  </div>
+                </div>
+                <div className="flex gap-1.5">
+                  <Copy className="mt-0.5 h-3.5 w-3.5 shrink-0 text-success" />
+                  <div>
+                    <div className="font-semibold text-text">Copy UPI ID</div>
+                    <div className="text-text-muted">Paste in any UPI app and enter amount.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-2 grid gap-1.5">
               <div className="grid grid-cols-[minmax(0,6fr)_minmax(0,4fr)] gap-2">
                 <CopyButton
                   text={upiId}
-                  label="Copy UPI"
-                  className="h-10 justify-center border-border-strong bg-bg-elev-3 px-3 text-sm text-text hover:bg-bg-glass-strong"
+                  label="Copy UPI ID"
+                  className="h-9 justify-center border-border-strong bg-bg-elev-3 px-2 text-xs text-text hover:bg-bg-glass-strong"
                 />
                 <CopyButton
                   text={upiAmount}
                   label="Amount"
-                  className="h-10 justify-center border-border bg-bg-elev-1 px-2 text-sm text-text-muted hover:bg-bg-elev-3 hover:text-text"
+                  className="h-9 justify-center border-border bg-bg-elev-1 px-2 text-xs text-text-muted hover:bg-bg-elev-3 hover:text-text"
                 />
               </div>
               <button
                 type="button"
                 onClick={downloadQrImage}
                 disabled={qrDownloading || !qrImageUrl}
-                className="inline-flex h-10 items-center justify-center gap-1.5 rounded-md border border-info/30 bg-info-soft px-3 text-sm font-semibold text-info transition-colors hover:border-info/50 hover:bg-info/20 disabled:cursor-not-allowed disabled:opacity-50"
+                className="inline-flex h-9 items-center justify-center gap-1.5 rounded-md border border-info/30 bg-info-soft px-3 text-xs font-semibold text-info transition-colors hover:border-info/50 hover:bg-info/20 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {qrDownloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-                Download QR with details
+                Download QR
               </button>
             </div>
-            <div className="mt-2.5 rounded-lg border border-info/25 bg-info-soft px-3 py-2 text-[11px] leading-relaxed text-info">
-              Downloaded QR includes UPI ID, amount, subscription name, date, and time.
+            <div className="mt-2 rounded-lg border border-info/25 bg-info-soft px-2.5 py-1.5 text-[11px] leading-snug text-info">
+              After payment, paste the UTR / reference number below.
             </div>
             {safariPayment && (
-              <div className="mt-3 rounded-lg border border-accent/30 bg-accent-soft p-3 text-xs leading-relaxed text-accent">
+              <div className="mt-2 rounded-lg border border-accent/30 bg-accent-soft p-2 text-[11px] leading-snug text-accent">
                 <div className="font-semibold text-text">Safari / iPhone</div>
-                <ol className="mt-1.5 list-decimal space-y-1 pl-4">
+                <ol className="mt-1 list-decimal space-y-0.5 pl-4">
                   <li>Best option: scan this QR from another phone.</li>
-                  <li>Or tap Copy UPI, open GPay/PhonePe/Paytm manually, and paste the UPI ID.</li>
+                  <li>Or copy the UPI ID, open any UPI app manually, and paste it.</li>
                   <li>Or download the QR and upload it inside your UPI app if supported.</li>
                 </ol>
               </div>
             )}
-            <p className="mt-3 text-xs leading-relaxed text-text-muted">
-              After paying, paste the UTR / reference number shown in your app into the form below.
-            </p>
           </div>
         </div>
       )}
@@ -807,7 +833,7 @@ function CheckoutInner() {
               </div>
             )}
             <p className="mt-2 text-xs text-text-muted">
-              This opens payment details first. Direct app opening is optional because some UPI apps block browser-launched QR payments.
+              You can pay by scanning the QR, downloading the QR slip, or copying the UPI ID into any UPI app.
             </p>
           </div>
 
