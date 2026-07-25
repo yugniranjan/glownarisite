@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { trackStreamHub } from '@/lib/analytics';
+import { trackGlownari } from '@/lib/analytics';
 
 export default function ProductAnalytics({
   productId,
@@ -15,7 +15,7 @@ export default function ProductAnalytics({
   priceCents: number;
 }) {
   useEffect(() => {
-    trackStreamHub({
+    trackGlownari({
       eventType: 'product_view',
       productId,
       productSlug,

@@ -7,19 +7,23 @@ import { useEffect, useState } from 'react';
 import {
   ChevronRight,
   MessageCircle,
+  PackageCheck,
   Search,
   ShieldCheck,
   Tag,
   X,
 } from 'lucide-react';
+import ThemeToggle from '@/components/ThemeToggle';
+import CartHeaderLink from '@/components/CartHeaderLink';
+import AccountHeaderButton from '@/components/AccountHeaderButton';
+import HeaderSearch from '@/components/HeaderSearch';
 
 interface NavLink { href: string; label: string; }
 const PRIMARY_NAV: NavLink[] = [
   { href: '/',                 label: 'Home' },
   { href: '/#trending',        label: 'Trending' },
-  { href: '/category/ott-plans', label: 'OTT' },
-  { href: '/category/music',   label: 'Music' },
-  { href: '/category/sports',  label: 'Sports' },
+  { href: '/#products',        label: 'Products' },
+  { href: '/cart',             label: 'Cart' },
   { href: '/track-order',      label: 'Track order' },
 ];
 
@@ -29,6 +33,7 @@ export default function Header() {
   const pathname = usePathname();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
   // Lock body scroll when drawer is open
   useEffect(() => {
@@ -39,66 +44,85 @@ export default function Header() {
   // Close drawer when route changes
   useEffect(() => { setDrawerOpen(false); setSearchOpen(false); }, [pathname]);
 
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 18);
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
     <header className="sticky top-0 z-40">
       {/* Main bar — minimal on mobile, expands on desktop */}
-      <div className="border-b border-border bg-bg/95 backdrop-blur supports-[backdrop-filter]:bg-bg/80">
-        <div className="mx-auto flex h-14 max-w-page items-center gap-2 px-3 sm:h-16 sm:gap-3 sm:px-4">
+      <div className="border-b border-white/10 bg-accent text-white shadow-[0_10px_30px_var(--accent-glow)]">
+        <div className="mx-auto flex h-14 max-w-page items-center gap-2 px-3 sm:h-16 sm:gap-3 sm:px-4 lg:gap-4">
           {/* Hamburger (mobile only) */}
           <button
             type="button"
             onClick={() => setDrawerOpen(true)}
-            className="grid h-11 w-11 place-items-center rounded-md border border-border bg-bg-glass text-text lg:hidden"
+            className="grid h-10 w-10 place-items-center rounded-md border border-white/20 bg-white/10 text-white lg:hidden"
             aria-label="Open menu"
           >
             <MenuIcon />
           </button>
 
           {/* Brand */}
-          <Link href="/" className="flex shrink-0 items-center gap-2">
-            <Image
-              src="/streamhub_logo.png"
-              alt="StreamHub"
-              width={260}
-              height={55}
-              priority
-              className="h-9 w-auto sm:h-10"
-            />
+          <Link href="/" className="flex shrink-0 items-center gap-2 text-white">
+            <span
+              className={`inline-flex items-center justify-center overflow-hidden rounded-lg bg-white transition-all duration-300 ${
+                scrolled
+                  ? 'h-10 w-10 p-1'
+                  : 'h-10 w-[156px] px-1.5 py-1 sm:h-12 sm:w-[216px] lg:w-[224px]'
+              }`}
+            >
+              <Image
+                src={scrolled ? '/glownari-mark.png' : '/glownari-header-logo.png'}
+                alt="Glownari"
+                width={scrolled ? 96 : 620}
+                height={scrolled ? 96 : 160}
+                priority
+                className="h-full w-full object-contain"
+              />
+            </span>
           </Link>
 
           {/* Search — inline on desktop, icon trigger on mobile */}
-          <form
-            action="/#products"
-            className="ml-auto hidden h-11 max-w-xl flex-1 items-center gap-2 rounded-lg border border-border bg-bg-glass px-3 lg:flex"
-          >
-            <Search className="h-4 w-4 shrink-0 text-text-dim" aria-hidden />
-            <input
-              name="q"
-              placeholder="Search Netflix, Prime, Spotify…"
-              className="h-full w-full bg-transparent text-sm text-text outline-none placeholder:text-text-dim"
-            />
-          </form>
+          <HeaderSearch />
 
           {/* Mobile search icon */}
           <button
             type="button"
             onClick={() => setSearchOpen((s) => !s)}
-            className="ml-auto grid h-11 w-11 place-items-center rounded-md border border-border bg-bg-glass text-text lg:hidden"
+            className="ml-auto grid h-10 w-10 place-items-center rounded-md border border-white/20 bg-white/10 text-white lg:hidden"
             aria-label="Search"
           >
             {searchOpen ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
           </button>
+          <div className="lg:hidden">
+            <CartHeaderLink mobile />
+          </div>
+          <div className="lg:hidden">
+            <AccountHeaderButton mobile />
+          </div>
 
           {/* Desktop nav links */}
-          <nav className="ml-2 hidden items-center gap-5 text-sm font-medium text-text-muted lg:flex">
-            <Link href="/track-order" className="hover:text-text">Track</Link>
-            <Link href="/#trending" className="hover:text-text">Trending</Link>
+          <nav className="ml-auto hidden shrink-0 items-center gap-1.5 text-sm font-bold text-white/90 lg:flex">
+            <Link href="/track-order" className="inline-flex h-10 items-center gap-1.5 rounded-md px-3 transition hover:bg-white/10 hover:text-white">
+              <PackageCheck className="h-4 w-4" />
+              Track
+            </Link>
+            <Link href="/#products" className="inline-flex h-10 items-center rounded-md px-3 transition hover:bg-white/10 hover:text-white">Products</Link>
+            <CartHeaderLink />
+            <AccountHeaderButton />
           </nav>
+          <div className="hidden shrink-0 lg:block">
+            <ThemeToggle inverse />
+          </div>
 
           {/* Desktop primary CTA */}
           <a
             href={`https://wa.me/${WHATSAPP_NUMBER}`}
-            className="hidden h-10 items-center gap-1.5 rounded-md bg-whatsapp px-4 text-sm font-semibold text-white hover:bg-whatsapp-strong lg:inline-flex"
+            className="hidden h-10 shrink-0 items-center gap-2 rounded-xl bg-white px-4 text-sm font-black text-accent shadow-sm transition hover:bg-[#fff3f8] hover:shadow-card lg:inline-flex"
             aria-label="Chat on WhatsApp"
           >
             <MessageCircle className="h-4 w-4" />
@@ -108,16 +132,10 @@ export default function Header() {
 
         {/* Slide-down search on mobile */}
         {searchOpen && (
-          <div className="border-t border-border bg-bg lg:hidden">
-            <form action="/#products" className="mx-auto flex h-12 max-w-page items-center gap-2 px-3">
-              <Search className="h-4 w-4 shrink-0 text-text-dim" aria-hidden />
-              <input
-                name="q"
-                autoFocus
-                placeholder="Search Netflix, Prime, Spotify…"
-                className="h-full w-full bg-transparent text-sm text-text outline-none placeholder:text-text-dim"
-              />
-            </form>
+          <div className="border-t border-white/15 bg-accent lg:hidden">
+            <div className="mx-auto max-w-page px-3 py-2">
+              <HeaderSearch mobile autoFocus />
+            </div>
           </div>
         )}
       </div>
@@ -135,15 +153,16 @@ export default function Header() {
             aria-modal="true"
           >
             <div className="flex items-center justify-between border-b border-border px-4 py-3">
-              <div className="flex items-center gap-2">
+              <Link href="/" className="inline-flex h-12 w-[220px] items-center justify-center overflow-hidden rounded-lg bg-white px-1.5 py-1">
                 <Image
-                  src="/streamhub_logo.png"
-                  alt="StreamHub"
-                  width={260}
-                  height={55}
-                  className="h-9 w-auto"
+                  src="/glownari-header-logo.png"
+                  alt="Glownari"
+                  width={620}
+                  height={160}
+                  priority
+                  className="h-full w-full object-contain"
                 />
-              </div>
+              </Link>
               <button
                 onClick={() => setDrawerOpen(false)}
                 className="grid h-11 w-11 place-items-center rounded-md text-text-muted hover:bg-bg-glass hover:text-text"
@@ -177,25 +196,31 @@ export default function Header() {
               </ul>
 
               <p className="mt-5 px-2 pb-2 pt-1 text-[11px] font-semibold uppercase tracking-wider text-text-dim">
-                Why StreamHub
+                Why shop here
               </p>
               <ul className="space-y-1 text-sm text-text-muted">
                 <li className="flex items-center gap-3 px-3 py-2">
                   <ShieldCheck className="h-4 w-4 text-success" />
-                  Verified accounts only
+                  Secure Razorpay checkout
                 </li>
                 <li className="flex items-center gap-3 px-3 py-2">
                   <Tag className="h-4 w-4 text-accent" />
-                  Lowest price guarantee
+                  Easy product management
                 </li>
                 <li className="flex items-center gap-3 px-3 py-2">
                   <MessageCircle className="h-4 w-4 text-whatsapp" />
-                  24×7 chat support
+                  WhatsApp support
                 </li>
               </ul>
             </nav>
 
             <div className="border-t border-border p-3">
+              <div className="mb-3 flex items-center gap-2">
+                <ThemeToggle />
+                <Link href="/login" className="btn-ghost flex-1">
+                  Login
+                </Link>
+              </div>
               <a
                 href={`https://wa.me/${WHATSAPP_NUMBER}`}
                 className="btn-whatsapp w-full"

@@ -1,7 +1,7 @@
-import Image from 'next/image';
+import { ShoppingBag } from 'lucide-react';
 
 export default function PageLoader({
-  label = 'Loading StreamHub...',
+  label = 'Loading Glownari...',
   fullScreen = false,
 }: {
   label?: string;
@@ -13,14 +13,7 @@ export default function PageLoader({
         <div className="relative grid h-16 w-16 place-items-center rounded-xl border border-border bg-bg-elev-2 shadow-soft">
           <div className="absolute inset-0 rounded-xl border border-accent/30" />
           <div className="absolute inset-[-4px] rounded-[16px] border border-accent/20 border-t-accent animate-spin" />
-          <Image
-            src="/streamhub_logo.png"
-            alt="StreamHub"
-            width={38}
-            height={38}
-            className="h-9 w-9 object-contain"
-            priority
-          />
+          <ShoppingBag className="h-8 w-8 text-accent" aria-hidden="true" />
         </div>
         <div>
           <div className="text-sm font-semibold text-text">{label}</div>

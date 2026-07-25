@@ -7,21 +7,23 @@ const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '918506965129
 
 export default function Footer() {
   return (
-    <footer className="mt-8 border-t border-border bg-bg-elev-1 pb-2 sm:mt-12 lg:pb-0">
+    <footer className="mt-8 border-t border-border bg-[linear-gradient(180deg,var(--bg-elev-1),var(--bg))] pb-2 sm:mt-12 lg:pb-0">
       {/* Trust band */}
-      <div className="border-b border-border">
-        <div className="mx-auto grid max-w-page grid-cols-2 gap-3 px-3 py-6 sm:grid-cols-4 sm:gap-4 sm:px-4 sm:py-8">
+      <div className="border-b border-border bg-bg-elev-2/70">
+        <div className="mx-auto grid max-w-page grid-cols-2 gap-2 px-3 py-4 sm:grid-cols-4 sm:gap-3 sm:px-4 sm:py-5">
           {[
-            { icon: ShieldCheck, label: 'Verified', sub: 'Personal accounts' },
-            { icon: Zap,         label: 'Instant',  sub: '< 10 min average' },
-            { icon: Headphones,  label: 'Support',  sub: '24×7 on WhatsApp' },
-            { icon: Package,     label: 'Refund',  sub: 'For any valid issue' },
+            { icon: ShieldCheck, label: 'Secure', sub: 'Razorpay checkout' },
+            { icon: Zap,         label: 'Fast',  sub: 'Quick processing' },
+            { icon: Headphones,  label: 'Support',  sub: 'WhatsApp help' },
+            { icon: Package,     label: 'Tracked',  sub: 'Order updates' },
           ].map(({ icon: Icon, label, sub }) => (
-            <div key={label} className="flex items-center gap-3 rounded-lg bg-bg-elev-2 p-3 sm:p-4">
-              <Icon className="h-5 w-5 shrink-0 text-success sm:h-6 sm:w-6" />
+            <div key={label} className="flex items-center gap-3 rounded-xl border border-border bg-bg-elev-2 px-3 py-3 shadow-card">
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-success-soft text-success">
+                <Icon className="h-5 w-5" />
+              </span>
               <div className="min-w-0">
-                <div className="text-xs font-semibold text-text sm:text-sm">{label}</div>
-                <div className="truncate text-[11px] text-text-muted sm:text-xs">{sub}</div>
+                <div className="text-sm font-black text-text">{label}</div>
+                <div className="truncate text-xs font-medium text-text-muted">{sub}</div>
               </div>
             </div>
           ))}
@@ -29,36 +31,35 @@ export default function Footer() {
       </div>
 
       {/* Main link grid */}
-      <div className="mx-auto max-w-page px-3 pt-5 sm:px-4 sm:py-12">
-        <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr_1fr_1fr] lg:gap-8">
+      <div className="mx-auto max-w-page px-3 pt-6 sm:px-4 sm:py-10">
+        <div className="grid gap-7 rounded-2xl border border-border bg-bg-elev-2 p-4 shadow-card sm:p-6 lg:grid-cols-[1.3fr_0.8fr_0.8fr_0.8fr] lg:gap-8">
           {/* Brand */}
           <div>
-            <Link href="/" className="flex items-center gap-2.5">
+            <Link href="/" className="inline-flex h-24 w-[230px] items-center justify-start overflow-hidden rounded-lg bg-white px-2 py-1">
               <Image
-                src="/streamhub_logo.png"
-                alt="StreamHub"
-                width={260}
-                height={55}
-                loading="eager"
-                className="h-10 w-auto sm:h-12"
+                src="/glownari-logo-full.png"
+                alt="Glownari"
+                width={360}
+                height={160}
+                className="h-full w-full object-contain"
               />
             </Link>
-            <p className="mt-3 max-w-sm text-[13px] leading-6 text-text-muted sm:text-sm sm:leading-relaxed">
-              India&apos;s honest source for premium OTT, music, and AI subscriptions. Verified accounts, instant delivery, real human support.
+            <p className="mt-3 max-w-sm text-sm leading-6 text-text-muted">
+              A premium storefront for curated products, secure payments, easy order tracking, coupons, and real human support.
             </p>
             <div className="mt-4 flex items-center gap-2">
               <a
                 href={`https://wa.me/${WHATSAPP_NUMBER}`}
-                className="btn-whatsapp inline-flex !h-10 !px-4 text-[13px]"
+                className="btn-whatsapp inline-flex !h-10 !px-4 text-sm"
               >
                 <MessageCircle className="h-4 w-4" />
                 Chat support
               </a>
               <a
-                href="https://www.instagram.com/streamhubofficial.in"
+                href="https://www.instagram.com/glownariofficial.in"
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="Follow StreamHub on Instagram"
+                aria-label="Follow Glownari on Instagram"
                 className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-bg-elev-2 text-text-muted transition-colors hover:border-accent hover:text-accent"
               >
                 <InstagramIcon className="h-5 w-5" />
@@ -66,13 +67,13 @@ export default function Footer() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-x-5 gap-y-6 sm:grid-cols-3 lg:contents">
+          <div className="grid grid-cols-2 gap-x-6 gap-y-6 sm:grid-cols-3 lg:contents">
             <FooterCol
               heading="Shop"
               links={[
-                { label: 'OTT subscriptions', href: '/category/ott-plans' },
-                { label: 'Music & audio', href: '/category/music' },
-                { label: 'Sports', href: '/category/sports' },
+                { label: 'All products', href: '/#products' },
+                { label: 'Categories', href: '/#products' },
+                { label: 'Best value', href: '/#trending' },
                 { label: 'Trending', href: '/#trending' },
               ]}
             />
@@ -87,8 +88,8 @@ export default function Footer() {
             <FooterCol
               heading="About"
               links={[
-                { label: 'How we deliver', href: '/' },
-                { label: 'Why our prices', href: '/' },
+                { label: 'How orders work', href: '/#faq' },
+                { label: 'Why shop here', href: '/#faq' },
                 { label: 'Privacy policy', href: '/refund-policy#privacy-policy' },
                 { label: 'Terms', href: '/terms' },
               ]}
@@ -97,15 +98,15 @@ export default function Footer() {
         </div>
 
         {/* Payment + legal */}
-        <div className="mt-6 flex flex-col gap-4 border-t border-border pt-5 text-xs text-text-muted sm:mt-10 sm:flex-row sm:items-center sm:justify-between sm:pt-6">
-          <div>
+        <div className="mt-5 flex flex-col gap-4 rounded-xl border border-border bg-bg-elev-2 px-4 py-4 text-xs text-text-muted shadow-card sm:mt-6 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
             <div className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-text-dim">
               We accept
             </div>
             <PaymentMethods />
           </div>
-          <p className="leading-relaxed">
-            © {new Date().getFullYear()} StreamHub. All product names, logos and brands belong to their respective owners and are used for identification only.
+          <p className="max-w-xl leading-relaxed sm:text-right">
+            © {new Date().getFullYear()} Glownari. Product names, images, prices, and categories are managed from your admin panel.
           </p>
         </div>
       </div>
@@ -140,14 +141,14 @@ function FooterCol({
   links: { label: string; href: string }[];
 }) {
   return (
-    <div>
-      <div className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-accent sm:mb-3">
+    <div className="min-w-0">
+      <div className="mb-3 text-[11px] font-black uppercase tracking-[0.18em] text-accent">
         {heading}
       </div>
-      <ul className="space-y-1.5 sm:space-y-2">
+      <ul className="space-y-2">
         {links.map((l) => (
           <li key={l.label}>
-            <Link href={l.href} className="text-[13px] leading-6 text-text-muted hover:text-text sm:text-sm">
+            <Link href={l.href} className="text-sm font-medium leading-6 text-text-muted transition hover:text-accent">
               {l.label}
             </Link>
           </li>

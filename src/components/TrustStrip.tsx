@@ -1,10 +1,10 @@
 import { Headphones, RefreshCw, ShieldCheck, Zap } from 'lucide-react';
 
 const ITEMS = [
-  { icon: ShieldCheck, label: 'Verified accounts', sub: '100% safe & private' },
-  { icon: Zap,         label: 'Instant delivery',  sub: 'Most orders < 10 min' },
-  { icon: Headphones,  label: '24×7 support',      sub: 'Chat anytime, day or night' },
-  { icon: RefreshCw,   label: 'Refund for Any Valid Issue', sub: 'Any valid issue? We refund' },
+  { icon: ShieldCheck, label: 'Secure checkout', sub: 'Powered by Razorpay' },
+  { icon: Zap,         label: 'Fast shipping', sub: 'Quick order updates' },
+  { icon: Headphones,  label: 'WhatsApp support', sub: 'Chat when you need help' },
+  { icon: RefreshCw,   label: 'Easy resolution', sub: 'Admin-managed order status' },
 ];
 
 /** Horizontal scroll on mobile, 4-col grid on desktop. */

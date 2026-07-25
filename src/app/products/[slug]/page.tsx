@@ -5,7 +5,6 @@ import {
   ArrowLeft,
   CheckCircle2,
   ChevronDown,
-  Clock3,
   Headphones,
   MessageCircle,
   RefreshCw,
@@ -20,6 +19,7 @@ import RatingStars from '@/components/RatingStars';
 import PaymentMethods from '@/components/PaymentMethods';
 import ProductAnalytics from '@/components/ProductAnalytics';
 import PendingLinkButton from '@/components/PendingLinkButton';
+import AddToCartButton from '@/components/AddToCartButton';
 
 const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '918506965129';
 
@@ -45,7 +45,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const [product, proof] = await Promise.all([getProduct(slug), getSocialProof()]);
   if (!product) notFound();
 
-  const message = encodeURIComponent(`Hi, I want to order ${product.name} from StreamHub.`);
+  const message = encodeURIComponent(`Hi, I want to order ${product.name} from Glownari.`);
   const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${message}`;
   const save = product.compareAtCents ? Math.max(product.compareAtCents - product.priceCents, 0) : 0;
   const savePct = product.compareAtCents ? Math.round((save / product.compareAtCents) * 100) : 0;
@@ -66,7 +66,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
           className="inline-flex items-center gap-1.5 text-xs font-semibold text-text-muted hover:text-text sm:text-sm"
         >
           <ArrowLeft className="h-4 w-4" />
-          Back to all plans
+          Back to all products
         </Link>
       </div>
 
@@ -96,7 +96,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
             {/* Title block */}
             <div className="mt-5 sm:mt-7">
               <p className="text-[11px] font-semibold uppercase tracking-wider text-accent sm:text-xs">
-                {product.category?.name || 'Premium plan'}
+                {product.category?.name || 'Product'}
               </p>
               <h1 className="mt-2 text-2xl font-bold leading-tight tracking-tight sm:text-4xl">
                 {product.name}
@@ -128,22 +128,22 @@ export default async function ProductPage({ params }: ProductPageProps) {
               </div>
               {save > 0 && (
                 <div className="mt-1.5 text-sm font-semibold text-success">
-                  You save {formatMoney(save, product.currency)} ({savePct}% off)
+                  Save {formatMoney(save, product.currency)} ({savePct}% off)
                 </div>
               )}
             </div>
 
-            {/* What you get */}
+            {/* Product highlights */}
             <div className="mt-6 rounded-xl border border-border bg-bg-elev-2 p-4 sm:mt-8 sm:p-6">
-              <h2 className="text-base font-semibold sm:text-lg">What you get</h2>
+              <h2 className="text-base font-semibold sm:text-lg">Product highlights</h2>
               <ul className="mt-3 grid gap-2 sm:grid-cols-2">
                 {[
-                  product.serviceType && `${product.serviceType}`,
+                  product.serviceType && `${product.serviceType} collection`,
                   product.accountType && `${product.accountType}`,
-                  product.durationDays && `${product.durationDays} days validity`,
-                  'Instant delivery on WhatsApp',
-                  'Refund for Any Valid Issue',
-                  '24×7 chat support',
+                  product.stockQuantity != null && `${product.stockQuantity} in stock`,
+                  'Secure Razorpay checkout',
+                  'Order tracking',
+                  'WhatsApp support',
                 ]
                   .filter(Boolean)
                   .map((line) => (
@@ -158,7 +158,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
             {/* Description */}
             {product.description && (
               <div className="mt-6 rounded-xl border border-border bg-bg-elev-2 p-4 sm:mt-8 sm:p-6">
-                <h2 className="text-base font-semibold sm:text-lg">About this plan</h2>
+                <h2 className="text-base font-semibold sm:text-lg">About this product</h2>
                 <div
                   className="prose-dark mt-3 text-sm sm:text-[15px]"
                   dangerouslySetInnerHTML={{ __html: product.description }}
@@ -169,10 +169,10 @@ export default async function ProductPage({ params }: ProductPageProps) {
             {/* Trust badges grid */}
             <div className="mt-6 grid grid-cols-2 gap-3 sm:mt-8 sm:grid-cols-4 sm:gap-4">
               {[
-                { icon: ShieldCheck, label: '100% safe' },
-                { icon: Zap,         label: 'Instant activation' },
-                { icon: RefreshCw,   label: 'Refund for Any Valid Issue' },
-                { icon: Headphones,  label: '24×7 support' },
+                { icon: ShieldCheck, label: 'Secure payment' },
+                { icon: Zap,         label: 'Fast shipping' },
+                { icon: RefreshCw,   label: 'Easy support' },
+                { icon: Headphones,  label: 'WhatsApp help' },
               ].map(({ icon: Icon, label }) => (
                 <div
                   key={label}
@@ -189,10 +189,10 @@ export default async function ProductPage({ params }: ProductPageProps) {
               <h2 className="text-base font-semibold sm:text-lg">How delivery works</h2>
               <ol className="mt-4 space-y-3 text-sm text-text-muted">
                 {[
-                  { t: 'Tap Buy now', d: 'Fill 3 fields — name, phone, email. Takes 20 seconds.' },
-                  { t: 'Pay with UPI', d: 'Send the exact amount to our UPI ID and submit your UTR / transaction reference.' },
-                  { t: 'Get your account', d: 'Login details arrive on WhatsApp or email. Usually within 10 minutes.' },
-                  { t: 'Start streaming', d: 'Use immediately. Any valid issue? We refund you.' },
+                  { t: 'Tap Buy now', d: 'Enter your name, phone, email, quantity, and optional note.' },
+                  { t: 'Pay with Razorpay', d: 'Use UPI, cards, wallets, or netbanking through secure Razorpay checkout.' },
+                  { t: 'Order is confirmed', d: 'Payment is verified automatically and your order number is created.' },
+                  { t: 'Track delivery', d: 'Use Track Order or WhatsApp support for fulfillment updates.' },
                 ].map((s, i) => (
                   <li key={s.t} className="flex gap-3">
                     <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-accent-soft text-xs font-bold text-accent">
@@ -216,7 +216,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
               )}
               <div className="rounded-lg border border-border bg-bg-elev-1 p-4">
                 <div className="text-[11px] font-semibold uppercase tracking-wider text-text-dim">
-                  StreamHub price
+                  Store price
                 </div>
                 <div className="mt-1 flex items-baseline gap-3">
                   <span className="text-3xl font-bold text-text">
@@ -238,16 +238,16 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
               <dl className="mt-5 space-y-3 text-sm">
                 {product.serviceType && (
-                  <Row label="Service" value={product.serviceType} />
+                  <Row label="Category" value={product.serviceType} />
                 )}
-                {product.accountType && <Row label="Type" value={product.accountType} />}
-                {product.durationDays && <Row label="Validity" value={`${product.durationDays} days`} />}
+                {product.accountType && <Row label="Variant" value={product.accountType} />}
+                {product.stockQuantity != null && <Row label="Stock" value={`${product.stockQuantity} available`} />}
                 <Row
-                  label="Delivery"
+                  label="Payment"
                   value={
                     <span className="inline-flex items-center gap-1 text-success">
                       <Zap className="h-3.5 w-3.5" />
-                      Instant
+                      Razorpay
                     </span>
                   }
                 />
@@ -259,9 +259,12 @@ export default async function ProductPage({ params }: ProductPageProps) {
               >
                 Buy now — {formatMoney(product.priceCents, product.currency)}
               </PendingLinkButton>
+              <div className="mt-2">
+                <AddToCartButton product={product} />
+              </div>
               <a href={whatsappUrl} className="btn-whatsapp mt-2 w-full">
                 <MessageCircle className="h-4 w-4" />
-                Chat to buy
+                Chat support
               </a>
 
               <div className="mt-5 border-t border-border pt-4">
@@ -274,8 +277,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
               <div className="mt-4 flex items-start gap-2 rounded-lg bg-success-soft p-3 text-xs text-success">
                 <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" />
                 <span>
-                  <strong>Refund for Any Valid Issue.</strong> If your account stops working,
-                  message us and we&apos;ll refund you.
+                  Pay securely with Razorpay. Message us on WhatsApp for delivery or product support.
                 </span>
               </div>
             </div>
@@ -291,7 +293,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
         <div className="mx-auto flex max-w-page items-center gap-3 px-3 py-3">
           <div className="min-w-0 flex-1">
             <div className="text-[10px] font-semibold uppercase tracking-wider text-text-dim">
-              StreamHub
+              Store price
             </div>
             <div className="flex items-baseline gap-2">
               <span className="text-lg font-bold text-text">
@@ -305,7 +307,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
           <a
             href={whatsappUrl}
             className="grid h-11 w-11 shrink-0 place-items-center rounded-md border border-border bg-bg-glass text-whatsapp"
-            aria-label="Chat to buy"
+            aria-label="Chat support"
           >
             <MessageCircle className="h-5 w-5" />
           </a>
@@ -315,6 +317,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
           >
             Buy now
           </PendingLinkButton>
+          <AddToCartButton product={product} compact />
         </div>
       </div>
     </>

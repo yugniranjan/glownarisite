@@ -14,9 +14,8 @@ interface Props {
 }
 
 /**
- * Netflix-style horizontal rail.
- * Mobile: snap-x, swipeable, no arrow buttons (touch).
- * Desktop: visible scroll-by-page chevron buttons.
+ * Marketplace horizontal rail.
+ * Mobile: snap-x and swipeable. Desktop: scroll-by-page chevrons.
  */
 export default function Rail({
   eyebrow,

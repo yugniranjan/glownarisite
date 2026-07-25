@@ -1,122 +1,117 @@
 import Link from 'next/link';
-import { Clock3, Film, ShieldCheck } from 'lucide-react';
-import { formatMoney, type StreamHubProduct } from '@/lib/api';
+import { Heart, Package, ShieldCheck, Sparkles, Star, Truck } from 'lucide-react';
+import { formatMoney, type GlownariProduct } from '@/lib/api';
 import PendingLinkButton from '@/components/PendingLinkButton';
+import AddToCartButton from '@/components/AddToCartButton';
 
 interface Props {
-  product: StreamHubProduct;
-  /** Compact poster variant — used inside horizontal rails. */
+  product: GlownariProduct;
+  /** Compact card variant used inside horizontal deal rails. */
   poster?: boolean;
 }
 
 export default function ProductCard({ product, poster }: Props) {
   const save = product.compareAtCents ? Math.max(product.compareAtCents - product.priceCents, 0) : 0;
   const savePct = product.compareAtCents ? Math.round((save / product.compareAtCents) * 100) : 0;
+  const category = product.category?.name || product.serviceType || 'Product';
+  const isLowStock = typeof product.stockQuantity === 'number' && product.stockQuantity > 0 && product.stockQuantity <= 5;
 
   return (
-    <article className="poster-card flex h-full flex-col">
-      {/* Poster — vertical 3:4 aspect for streaming-feel */}
-      <Link
-        href={`/products/${product.slug}`}
-        className="group relative block aspect-[3/4] overflow-hidden bg-bg-elev-3"
-      >
-        {product.coverImage ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={product.coverImage}
-            alt={product.name}
-            loading="lazy"
-            className="absolute inset-0 h-full w-full object-cover transition-transform duration-[650ms] ease-out group-hover:scale-110"
-          />
-        ) : (
-          <div className="absolute inset-0 grid place-items-center bg-[radial-gradient(circle_at_30%_20%,rgba(229,9,20,0.22),transparent_55%),var(--bg-elev-3)]">
-            <Film className="h-10 w-10 text-text-dim" />
-          </div>
-        )}
-
-        {/* Bottom fade for legibility */}
-        <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black via-black/55 to-transparent" />
-
-        {/* Badges */}
-        <div className="absolute left-2.5 top-2.5 flex flex-wrap items-start gap-1.5">
-          {product.badge && (
-            <span className="badge-best">{product.badge}</span>
-          )}
-          {savePct >= 20 && (
-            <span className="badge-off shadow-lg shadow-black/30">{savePct}% OFF</span>
+    <article className="group flex h-full flex-col overflow-hidden rounded-xl border border-border bg-bg-elev-2 shadow-card transition duration-300 hover:-translate-y-0.5 hover:border-accent/25 hover:shadow-hover">
+      <Link href={`/products/${product.slug}`} className="relative block overflow-hidden border-b border-border bg-[linear-gradient(135deg,#fff8fb_0%,#fff1f7_100%)] dark:bg-bg-elev-3">
+        <div className={poster ? 'aspect-[4/5] p-2' : 'aspect-[4/3] p-2'}>
+          {product.coverImage ? (
+            <img
+              src={product.coverImage}
+              alt={product.name}
+              loading="lazy"
+              className="h-full w-full rounded-lg object-cover shadow-[0_8px_20px_rgba(15,23,42,0.10)] transition-transform duration-300 group-hover:scale-[1.035]"
+            />
+          ) : (
+            <div className="grid h-full place-items-center rounded-lg bg-marketplace-chip">
+              <Package className="h-10 w-10 text-text-dim" />
+            </div>
           )}
         </div>
 
-        {/* Title + category overlay */}
-        <div className="absolute inset-x-0 bottom-0 p-3 sm:p-3.5">
-          <h3 className="line-clamp-2 text-[15px] font-semibold leading-tight text-white drop-shadow-sm sm:text-base">
-            {product.name}
-          </h3>
-          {product.category?.name && (
-            <div className="mt-1 text-xs font-medium text-white/70 drop-shadow-sm">
-              {product.category.name}
-            </div>
-          )}
+        <span
+          aria-hidden="true"
+          className="absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-white/92 text-slate-500 shadow-[0_8px_22px_rgba(15,23,42,0.18)] transition hover:bg-accent hover:text-white dark:bg-black/50 dark:text-white/80"
+        >
+          <Heart className="h-4 w-4" />
+        </span>
+
+        <div className="absolute left-2 top-2 flex max-w-[calc(100%-3rem)] flex-wrap gap-1">
+          <span className="inline-flex items-center gap-1 rounded-full bg-white/92 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-accent shadow-sm backdrop-blur">
+            <Sparkles className="h-3 w-3" />
+            Handpicked
+          </span>
+          {product.badge && <span className="rounded-full bg-slate-950/82 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-white shadow-sm backdrop-blur">{product.badge}</span>}
         </div>
       </Link>
 
-      {/* Below-poster price + CTA — minimal on poster variant inside rails */}
-      <div className="flex flex-1 flex-col gap-3 p-3 sm:p-4">
-        <div className="flex items-end justify-between gap-2">
-          <div className="min-w-0">
-            <div className="text-[10px] font-medium uppercase tracking-wider text-text-dim">
-              StreamHub
+      <div className="flex flex-1 flex-col p-2.5">
+        <div className="min-w-0">
+          <div className="flex items-center justify-between gap-2 text-[10px]">
+            <div className="line-clamp-1 font-bold uppercase tracking-wide text-text-dim">
+              {category}
             </div>
-            <div className="mt-0.5 truncate text-xl font-bold leading-none text-text sm:text-2xl">
-              {formatMoney(product.priceCents, product.currency)}
-            </div>
+            {isLowStock && <span className="shrink-0 rounded-full bg-accent-soft px-1.5 py-0.5 font-black text-accent">Few left</span>}
           </div>
-          {product.compareAtCents && (
-            <div className="text-right">
-              <div className="text-[10px] font-medium uppercase tracking-wider text-text-dim">
-                MRP
-              </div>
-              <div className="mt-0.5 text-xs font-medium text-text-muted line-through">
+          <Link href={`/products/${product.slug}`} className="mt-1 block">
+            <h3 className="line-clamp-2 min-h-[34px] text-[13px] font-semibold leading-[1.3] text-text transition hover:text-accent sm:text-sm">
+              {product.name}
+            </h3>
+          </Link>
+        </div>
+
+        <div className="mt-1.5 flex items-center gap-1.5">
+          <span className="inline-flex h-5 items-center gap-1 rounded-full bg-[#12805c] px-1.5 text-[11px] font-black text-white">
+            4.5 <Star className="h-2.5 w-2.5 fill-current" />
+          </span>
+          <span className="truncate text-[11px] font-semibold text-text-dim">Loved by buyers</span>
+          <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-success-soft px-1.5 py-0.5 text-[10px] font-black uppercase text-success">
+            <ShieldCheck className="h-3 w-3" />
+            Assured
+          </span>
+        </div>
+
+        <div className="mt-2 min-h-[42px]">
+          <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+            <span className="text-lg font-black leading-none text-text">
+              {formatMoney(product.priceCents, product.currency)}
+            </span>
+            {product.compareAtCents && (
+              <span className="text-xs font-medium text-text-muted line-through">
                 {formatMoney(product.compareAtCents, product.currency)}
-              </div>
+              </span>
+            )}
+            {savePct > 0 && (
+              <span className="text-xs font-black text-success">
+                {savePct}% off
+              </span>
+            )}
+          </div>
+          {save > 0 && (
+            <div className="mt-0.5 inline-flex rounded-full bg-success-soft px-2 py-0.5 text-[11px] font-bold text-success">
+              Extra offer available
             </div>
           )}
         </div>
 
-        {save > 0 && (
-          <span className="-mt-1 inline-flex w-fit items-center rounded-md bg-success-soft px-2 py-0.5 text-[11px] font-bold text-success">
-            Save {formatMoney(save, product.currency)}
-          </span>
-        )}
+        <div className="mt-1.5 flex min-h-[20px] items-center justify-between gap-2 text-[11px] font-semibold text-text-muted">
+          <div className="inline-flex min-w-0 items-center gap-1.5">
+            <Truck className="h-3.5 w-3.5 shrink-0 text-success" />
+            <span className="truncate">Free delivery · easy support</span>
+          </div>
+          {!poster && <span className="shrink-0 text-success">In stock</span>}
+        </div>
 
-        {!poster && (
-          <ul className="space-y-1.5 text-[11px] text-text-muted sm:text-xs">
-            {product.durationDays && (
-              <li className="flex items-center gap-1.5">
-                <Clock3 className="h-3.5 w-3.5 shrink-0 text-success" />
-                {product.durationDays} days validity
-              </li>
-            )}
-            <li className="flex items-center gap-1.5">
-              <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-info" />
-              Verified · Refund for Any Valid Issue
-            </li>
-          </ul>
-        )}
-
-        <div className="mt-auto grid grid-cols-[1fr_auto] gap-2">
-          <PendingLinkButton
-            href={`/checkout?product=${product.slug}`}
-            className="btn-accent !h-10 !px-3 text-[13px]"
-          >
+        <div className="mt-auto grid grid-cols-[minmax(0,1fr)_38px] items-center gap-1.5 pt-2">
+          <PendingLinkButton href={`/checkout?product=${product.slug}`} className="!flex !h-9 !min-h-0 items-center justify-center rounded-lg bg-accent !px-2.5 text-[13px] font-black leading-none text-white shadow-cta transition hover:bg-accent-strong">
             Buy now
           </PendingLinkButton>
-          <PendingLinkButton
-            href={`/products/${product.slug}`}
-            className="btn-ghost !h-10 !px-3 text-[13px]"
-          >
-            Details
-          </PendingLinkButton>
+          <AddToCartButton product={product} compact />
         </div>
       </div>
     </article>

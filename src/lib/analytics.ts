@@ -1,10 +1,10 @@
 'use client';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
-const VISITOR_KEY = 'streamhub_visitor_id';
-const SESSION_KEY = 'streamhub_session_id';
+const VISITOR_KEY = 'glownari_visitor_id';
+const SESSION_KEY = 'glownari_session_id';
 
-export type StreamHubEvent =
+export type GlownariEvent =
   | 'page_view'
   | 'product_view'
   | 'checkout_started'
@@ -12,7 +12,7 @@ export type StreamHubEvent =
   | 'order_submitted';
 
 type Payload = {
-  eventType: StreamHubEvent;
+  eventType: GlownariEvent;
   path?: string;
   productId?: string | null;
   productSlug?: string | null;
@@ -52,7 +52,7 @@ function utmSource() {
   }
 }
 
-export function trackStreamHub(payload: Payload) {
+export function trackGlownari(payload: Payload) {
   if (typeof window === 'undefined') return;
   const body = JSON.stringify({
     ...payload,
@@ -62,7 +62,7 @@ export function trackStreamHub(payload: Payload) {
     referrer: document.referrer || null,
     utmSource: utmSource(),
   });
-  const url = `${API_URL}/streamhub/analytics/track`;
+  const url = `${API_URL}/glownari/analytics/track`;
 
   try {
     if (navigator.sendBeacon) {

@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Refund Policy',
-  description: 'Refund policy, privacy policy and disclaimer for StreamHub.',
+  description: 'Refund policy, privacy policy and disclaimer for Glownari.',
 };
 
 const SECTIONS: { id: string; heading: string; intro?: string; points: string[] }[] = [
@@ -10,11 +10,11 @@ const SECTIONS: { id: string; heading: string; intro?: string; points: string[] 
     id: 'refund-policy',
     heading: 'Refund Policy',
     points: [
-      'If you face any login issue at the time of purchase, or if we are unable to provide the service, your full payment will be refunded without any deduction.',
-      'Once the plan is successfully delivered and working properly, no refund will be provided.',
-      'If any issue occurs after 2–3 days of purchase, our support team will properly assist you.',
-      'In such cases, replacement details or a new account will be provided within 30 minutes whenever possible.',
-      'Refunds will not be given for issues caused by misuse, policy violations, or unauthorized changes by the user.',
+      'If we are unable to fulfill a paid order because the product is unavailable, your payment can be refunded or adjusted against another product.',
+      'Refund eligibility depends on product condition, fulfillment status, and the reason shared by the customer.',
+      'Digital or custom items may have different refund handling if work has already started or delivery has been completed.',
+      'For damaged, wrong, or incomplete items, contact support with order number, photos, and details as soon as possible.',
+      'Refunds will not be given for misuse, fraudulent claims, incorrect customer details, or policy violations.',
     ],
   },
   {
@@ -22,12 +22,12 @@ const SECTIONS: { id: string; heading: string; intro?: string; points: string[] 
     heading: 'Privacy Policy',
     intro: 'Your privacy is important to us. By using our website, you agree to the following privacy policy:',
     points: [
-      'We only collect basic information required to provide your subscription service.',
-      'User data is used only for order processing and account delivery purposes.',
+      'We only collect basic information required to process and support your order.',
+      'User data is used only for order processing, fulfillment, support, analytics, and fraud prevention.',
       'We do not misuse, sell, or share your personal information with unauthorized parties.',
-      'Your details are only forwarded where necessary to activate or deliver the service.',
-      'We do not permanently store sensitive user information on our servers.',
-      'Payment-related information is handled securely through trusted payment providers.',
+      'Your details are only shared where necessary for payment, delivery, or support.',
+      'We do not store card, UPI, wallet, or netbanking credentials on our servers.',
+      'Payment-related information is handled securely through Razorpay or another trusted payment provider.',
       'We take reasonable steps to protect user information from unauthorized access.',
     ],
   },
@@ -35,9 +35,9 @@ const SECTIONS: { id: string; heading: string; intro?: string; points: string[] 
     id: 'disclaimer',
     heading: 'Disclaimer',
     points: [
-      'We do not own any OTT platform or its content.',
-      'All trademarks and logos belong to their respective owners.',
-      'Services are provided for personal entertainment use only.',
+      'Product photos, names, and descriptions should be reviewed before publishing.',
+      'All third-party names, brands, logos, and payment marks belong to their respective owners.',
+      'Store policies may be updated as operations, products, and payment methods change.',
     ],
   },
 ];

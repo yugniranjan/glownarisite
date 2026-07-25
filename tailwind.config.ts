@@ -4,7 +4,7 @@ import type { Config } from 'tailwindcss';
  * All colors read from CSS variables defined in src/app/globals.css.
  * Swap palette → change variables only, never this file.
  *
- * Current palette: Netflix-inspired (pure black + #e50914 red + white text).
+ * Current palette: modern marketplace blue with light/dark theme variables.
  */
 const config: Config = {
   future: {

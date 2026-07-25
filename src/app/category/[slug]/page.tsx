@@ -13,9 +13,9 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
   const categories = await getCategories();
   const category = categories.find((c) => c.slug === slug);
   return {
-    title: category ? `${category.name} subscriptions` : 'Category',
+    title: category ? `${category.name} products` : 'Category',
     description:
-      category?.description || `Browse ${category?.name || 'StreamHub'} subscription plans.`,
+      category?.description || `Browse ${category?.name || 'Glownari'} products.`,
   };
 }
 
@@ -73,7 +73,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
             </div>
             <span className="pill inline-flex w-max items-center gap-1.5">
               <Star className="h-4 w-4 text-accent" />
-              {products.total} {products.total === 1 ? 'plan' : 'plans'}
+              {products.total} {products.total === 1 ? 'product' : 'products'}
             </span>
           </div>
         </div>
@@ -97,10 +97,10 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
       <section className="mx-auto max-w-page px-3 py-6 sm:px-4 sm:py-10">
         {products.items.length === 0 ? (
           <div className="rounded-xl border border-border bg-bg-elev-2 p-10 text-center text-text-muted">
-            No plans in this category yet. Try a different category from above.
+            No products in this category yet. Try a different category from above.
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             {products.items.map((p) => (
               <ProductCard key={p.id} product={p} />
             ))}

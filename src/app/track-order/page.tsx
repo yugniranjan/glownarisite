@@ -24,6 +24,11 @@ interface TrackedOrder {
   quantity: number;
   totalCents: number;
   currency: string;
+  deliveryAddress?: string | null;
+  deliveryCity?: string | null;
+  deliveryState?: string | null;
+  deliveryPincode?: string | null;
+  deliveryLandmark?: string | null;
   product?: { name: string; coverImage?: string | null };
 }
 
@@ -77,7 +82,7 @@ export default function TrackOrderPage() {
     setLoading(true);
     try {
       const q = new URLSearchParams({ orderNumber: orderNumber.trim(), phone: `+91${phone}` });
-      const res = await fetch(`${API_URL}/streamhub/orders/track?${q}`);
+      const res = await fetch(`${API_URL}/glownari/orders/track?${q}`);
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || 'We could not find that order');
       setOrder(data);
@@ -108,7 +113,7 @@ export default function TrackOrderPage() {
             <input
               className="input"
               required
-              placeholder="SH-2024-XXXXX"
+              placeholder="2500001"
               value={orderNumber}
               onChange={(e) => setOrderNumber(e.target.value)}
               autoCapitalize="characters"
@@ -272,6 +277,15 @@ export default function TrackOrderPage() {
                   {formatMoney(order.totalCents, order.currency)}
                 </dd>
               </div>
+              {order.deliveryAddress && (
+                <div className="col-span-2 sm:col-span-3">
+                  <dt className="text-xs text-text-muted">Delivery address</dt>
+                  <dd className="mt-0.5 font-semibold">
+                    {order.deliveryAddress}, {[order.deliveryCity, order.deliveryState, order.deliveryPincode].filter(Boolean).join(', ')}
+                    {order.deliveryLandmark ? `, Landmark: ${order.deliveryLandmark}` : ''}
+                  </dd>
+                </div>
+              )}
             </dl>
 
             <a

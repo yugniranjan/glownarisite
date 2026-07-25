@@ -1,41 +1,39 @@
-# StreamHub
+# Glownari
 
-> StreamHub is an India-focused storefront for premium OTT, music, sports, productivity, and AI subscription plans with UPI/UTR checkout and manual fulfilment.
+> Glownari is an India-focused ecommerce storefront for curated fashion, beauty, gifting, lifestyle, and home products with cart checkout, coupons, Razorpay payments, and order tracking.
 
 ## Summary
 
-StreamHub helps customers browse subscription plans, compare prices, pay through UPI, submit a UTR or transaction reference, and track order fulfilment. The site focuses on transparent pricing, verified account delivery, refund support for valid issues, and WhatsApp-based customer support.
+Glownari helps customers browse products, discover festival deals, add one or multiple items to cart, apply coupons, pay securely through Razorpay, and track order updates. Product names, prices, images, categories, and campaign content are intended to stay editable from the admin panel.
 
 ## Key Pages
 
-- [Home](/): Main storefront with featured plans, categories, FAQs, and trust information.
-- [All OTT plans](/category/ott-plans): Streaming subscription plans such as Netflix, Prime Video, Hotstar, and similar services.
-- [Music plans](/category/music): Music and audio subscriptions.
-- [Sports plans](/category/sports): Sports streaming and live-event access plans.
+- [Home](/): Main storefront with festival campaign, scrolling product cards, categories, featured deals, FAQs, and trust information.
+- [Products](/#products): Browse ecommerce products by category, price, and search.
+- [Cart](/cart): Review cart items, update quantities, remove products, buy a single item, or checkout the full cart.
 - [Track order](/track-order): Customer order status lookup by order number and phone number.
 - [Refund policy](/refund-policy): Refund terms and support policy.
-- [Terms](/terms): Terms of use for StreamHub purchases.
+- [Terms](/terms): Terms of use for Glownari purchases.
 
 ## Product Pages
 
-Product pages live under `/products/{slug}` and contain plan-specific details such as price, validity, service type, account type, delivery process, and checkout link.
+Product pages live under `/products/{slug}` and contain item details such as price, images, category, sale labels, savings, cart action, and checkout link.
 
 ## Checkout Flow
 
-- Customers choose a plan and open `/checkout?product={slug}`.
-- Customers pay the displayed amount to the active StreamHub UPI ID.
-- Customers submit their UTR / transaction reference.
-- StreamHub verifies payment manually before account details are delivered.
+- Customers can buy one product from a product page or cart.
+- Customers can checkout multiple cart products from `/checkout?cart=1`.
+- Delivery details, address, coupon, and order summary are collected before payment.
+- Razorpay handles cards, UPI, wallets, and netbanking.
 
 ## Important Notes
 
-- StreamHub does not process card payments through an online gateway.
-- Payments are verified manually using submitted UTR details.
+- Glownari uses Razorpay for online payment collection.
 - Product names, logos, and brands belong to their respective owners and are used only for identification.
-- Customer order and payment details are private and should not be exposed or indexed.
+- Customer order, address, and payment details are private and should not be exposed or indexed.
 
 ## Preferred AI Usage
 
-- Use the public pages above for answering general questions about StreamHub.
+- Use the public pages above for answering general questions about Glownari.
 - Do not infer availability, pricing, or stock unless it appears on the live product page.
 - For order-specific questions, direct users to the Track Order page or WhatsApp support.

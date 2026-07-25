@@ -2,33 +2,31 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Terms & Conditions',
-  description: 'Terms & conditions and disclaimer for StreamHub.',
+  description: 'Terms & conditions for Glownari.',
 };
 
 const SECTIONS: { id: string; heading: string; intro?: string; points: string[] }[] = [
   {
     id: 'terms',
     heading: 'Terms & Conditions',
-    intro: 'By purchasing any subscription from our website, you agree to the following terms:',
+    intro: 'By purchasing any product from our website, you agree to the following terms:',
     points: [
-      'All subscriptions are shared plans.',
-      'Only one screen/device is allowed at a time unless mentioned otherwise.',
-      'Using multiple screens/devices may result in account removal without notice.',
-      'Do not change password, email, profile details, or recovery information.',
-      'Sharing account details with others is strictly prohibited.',
-      'Any unauthorized changes or misuse will lead to account suspension/block.',
-      'No refund will be provided once a plan is successfully delivered and working properly.',
-      'We are not responsible for OTT server issues or temporary downtime.',
-      'We reserve the right to remove access if any policy is violated.',
+      'Product names, prices, stock, images, descriptions, and offers are managed from the admin panel and may change without prior notice.',
+      'Orders are accepted only after successful payment verification through Razorpay or another enabled payment method.',
+      'Customers must provide accurate name, phone, email, quantity, and delivery/support notes where required.',
+      'We may cancel or refund an order if the product is unavailable, payment is disputed, or order details appear invalid.',
+      'Misuse, fraudulent payments, repeated false claims, or abusive communication may lead to order cancellation.',
+      'Delivery timelines depend on product availability, customer response, and operational conditions.',
+      'Refunds and replacements are handled according to the refund policy shown on this website.',
     ],
   },
   {
     id: 'disclaimer',
     heading: 'Disclaimer',
     points: [
-      'We do not own any OTT platform or its content.',
-      'All trademarks and logos belong to their respective owners.',
-      'Services are provided for personal entertainment use only.',
+      'Product photos, names, and descriptions should be reviewed by the store owner before publishing.',
+      'All third-party names, brands, logos, and payment marks belong to their respective owners.',
+      'Razorpay handles payment collection; we do not store card, UPI, wallet, or netbanking credentials on this website.',
     ],
   },
 ];
