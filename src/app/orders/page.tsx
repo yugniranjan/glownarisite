@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { CheckCircle2, Clock, Loader2, MapPin, Package, ReceiptText, Search, XCircle } from 'lucide-react';
 import { formatMoney, listMyOrders, type GlownariCustomerOrder } from '@/lib/api';
 import { getAuthToken } from '@/lib/auth';
+import AccountGate from '@/components/AccountGate';
 
 const STATUS_META: Record<string, { label: string; className: string; icon: typeof Clock }> = {
   PENDING: { label: 'Pending', className: 'bg-danger-soft text-danger', icon: Clock },
@@ -128,7 +129,7 @@ export default function OrdersPage() {
 
   if (loading) {
     return (
-      <div className="mx-auto grid min-h-[320px] max-w-page place-items-center px-3 py-10 sm:px-4">
+      <div className="site-container grid min-h-[320px] place-items-center py-10">
         <div className="inline-flex items-center gap-2 text-sm font-semibold text-text-muted">
           <Loader2 className="h-4 w-4 animate-spin text-accent" />
           Loading orders...
@@ -139,27 +140,27 @@ export default function OrdersPage() {
 
   if (needsLogin) {
     return (
-      <div className="mx-auto max-w-page px-3 py-10 sm:px-4 sm:py-16">
-        <div className="rounded-lg border border-border bg-bg-elev-2 px-4 py-14 text-center shadow-card">
-          <ReceiptText className="mx-auto h-12 w-12 text-accent" />
-          <h1 className="mt-5 text-2xl font-black">Login to view orders</h1>
-          <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-text-muted">
-            Your order history is linked to your account phone and email.
-          </p>
-          <Link href="/login?next=%2Forders" className="btn-accent mt-6 inline-flex">Login</Link>
-        </div>
-      </div>
+      <AccountGate
+        icon={ReceiptText}
+        eyebrow="Your purchases"
+        title="Every order, easy to find"
+        description="Sign in to see payment status, delivery details and tracking for everything you have ordered."
+        benefits={['See every item in an order', 'Check payment and delivery status', 'Open tracking in one tap']}
+        loginHref="/login?next=%2Forders"
+        signupHref="/signup?next=%2Forders"
+      />
     );
   }
 
   return (
-    <div className="mx-auto max-w-page px-3 py-6 sm:px-4 sm:py-10">
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+    <div className="site-container page-content">
+      <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-wider text-accent">Purchases</p>
           <h1 className="mt-1 text-2xl font-black sm:text-3xl">My orders</h1>
+          <p className="mt-1 text-sm text-text-muted">Track current deliveries and revisit past purchases.</p>
         </div>
-        <div className="rounded-xl border border-border bg-bg-elev-2 px-4 py-3 text-right shadow-card">
+        <div className="border-l-2 border-accent px-4 py-1 text-right">
           <div className="text-xs font-semibold text-text-muted">Paid total</div>
           <div className="text-lg font-black">{formatMoney(totalSpend, currency)}</div>
         </div>
@@ -168,7 +169,7 @@ export default function OrdersPage() {
       {error && <div className="mb-4 rounded-md border border-danger/40 bg-danger-soft px-3 py-2 text-sm text-danger">{error}</div>}
 
       {usingDemo && (
-        <div className="mb-4 rounded-xl border border-info/30 bg-info-soft px-4 py-3 text-sm font-semibold text-info">
+        <div className="mb-4 rounded-lg border border-info/30 bg-info-soft px-4 py-3 text-sm font-semibold text-info">
           Demo orders shown. Real orders placed from this account will appear here after payment.
         </div>
       )}
@@ -190,7 +191,7 @@ export default function OrdersPage() {
                   currency: order.currency,
                 }];
             return (
-              <article key={order.id} className="overflow-hidden rounded-2xl border border-border bg-bg-elev-2 shadow-card">
+              <article key={order.id} className="overflow-hidden rounded-lg border border-border bg-bg-elev-2 shadow-card">
                 <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border bg-bg-elev-1 px-4 py-4 sm:px-5">
                   <div>
                     <div className="font-mono text-xs text-text-muted">{order.orderNumber}</div>
@@ -231,7 +232,7 @@ export default function OrdersPage() {
                     )}
                   </div>
 
-                  <aside className="h-fit rounded-xl border border-border bg-bg-elev-1 p-4">
+                  <aside className="h-fit rounded-lg border border-border bg-bg-elev-1 p-4">
                     <div className="space-y-2 text-sm">
                       <Summary label="Payment" value={order.paymentStatus} />
                       <Summary label="Method" value={order.paymentMethod} />

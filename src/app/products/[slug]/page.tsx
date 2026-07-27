@@ -3,23 +3,22 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import {
   ArrowLeft,
+  BadgeCheck,
   CheckCircle2,
-  ChevronDown,
   Headphones,
   MessageCircle,
+  PackageCheck,
   RefreshCw,
   ShieldCheck,
-  Sparkles,
   Tag,
+  Truck,
   Users,
-  Zap,
 } from 'lucide-react';
 import { formatMoney, getProduct, getSocialProof, plusCount } from '@/lib/api';
-import RatingStars from '@/components/RatingStars';
 import PaymentMethods from '@/components/PaymentMethods';
 import ProductAnalytics from '@/components/ProductAnalytics';
-import PendingLinkButton from '@/components/PendingLinkButton';
-import AddToCartButton from '@/components/AddToCartButton';
+import ProductPurchaseActions from '@/components/ProductPurchaseActions';
+import RatingStars from '@/components/RatingStars';
 
 const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '918506965129';
 
@@ -29,6 +28,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
   const { slug } = await params;
   const product = await getProduct(slug);
   if (!product) return {};
+
   return {
     title: product.metaTitle || product.name,
     description: product.metaDescription || product.shortDescription || undefined,
@@ -47,8 +47,20 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   const message = encodeURIComponent(`Hi, I want to order ${product.name} from Glownari.`);
   const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${message}`;
-  const save = product.compareAtCents ? Math.max(product.compareAtCents - product.priceCents, 0) : 0;
-  const savePct = product.compareAtCents ? Math.round((save / product.compareAtCents) * 100) : 0;
+  const saving = product.compareAtCents
+    ? Math.max(product.compareAtCents - product.priceCents, 0)
+    : 0;
+  const discount = product.compareAtCents
+    ? Math.round((saving / product.compareAtCents) * 100)
+    : 0;
+  const highlights = [
+    product.serviceType && `${product.serviceType} collection`,
+    product.accountType,
+    product.stockQuantity != null && `${product.stockQuantity} pieces available`,
+    'Secure Razorpay checkout',
+    'Order tracking included',
+    'WhatsApp customer support',
+  ].filter(Boolean) as string[];
 
   return (
     <>
@@ -59,23 +71,18 @@ export default async function ProductPage({ params }: ProductPageProps) {
         priceCents={product.priceCents}
       />
 
-      {/* Back link */}
-      <div className="mx-auto max-w-page px-3 pt-4 sm:px-4 sm:pt-6">
+      <main className="site-container pb-28 pt-7 sm:pt-9 lg:pb-14">
         <Link
           href="/#products"
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-text-muted hover:text-text sm:text-sm"
+          className="mb-5 inline-flex items-center gap-2 text-sm font-semibold text-text-muted transition hover:text-accent"
         >
           <ArrowLeft className="h-4 w-4" />
-          Back to all products
+          Back to products
         </Link>
-      </div>
 
-      <article className="mx-auto max-w-page px-3 pb-32 pt-3 sm:px-4 sm:pb-12 sm:pt-4">
-        <div className="grid gap-6 lg:grid-cols-[1.2fr_400px] lg:gap-10">
-          {/* ─────── Left: gallery + content ─────── */}
-          <div>
-            {/* Hero image */}
-            <div className="poster-card aspect-video sm:aspect-[16/9]">
+        <section className="grid items-start gap-7 lg:grid-cols-[minmax(0,1.08fr)_minmax(390px,0.92fr)] lg:gap-12">
+          <div className="overflow-hidden rounded-lg border border-border bg-bg-elev-2">
+            <div className="relative aspect-[4/3] min-h-[300px] sm:min-h-[430px]">
               {product.coverImage ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -84,251 +91,169 @@ export default async function ProductPage({ params }: ProductPageProps) {
                   className="absolute inset-0 h-full w-full object-cover"
                 />
               ) : (
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,184,0,0.3),transparent_50%),var(--bg-elev-3)]" />
+                <div className="absolute inset-0 bg-bg-elev-3" />
               )}
-              <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/90 via-black/50 to-transparent" />
-              <div className="absolute left-3 top-3 flex flex-wrap gap-1.5 sm:left-4 sm:top-4">
-                {product.badge && <span className="badge-best">{product.badge}</span>}
-                {savePct >= 20 && <span className="badge-off">{savePct}% OFF</span>}
+
+              <div className="absolute left-4 top-4 flex flex-wrap gap-2 sm:left-5 sm:top-5">
+                {discount > 0 && (
+                  <span className="rounded-md bg-accent px-3 py-1.5 text-xs font-extrabold text-white">
+                    {discount}% OFF
+                  </span>
+                )}
+                {product.badge && (
+                  <span className="rounded-md bg-text px-3 py-1.5 text-xs font-bold uppercase text-bg">
+                    {product.badge}
+                  </span>
+                )}
               </div>
             </div>
 
-            {/* Title block */}
-            <div className="mt-5 sm:mt-7">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-accent sm:text-xs">
+            <div className="flex items-center justify-between gap-4 border-t border-border bg-bg-elev-1 px-4 py-3 text-sm sm:px-5">
+              <span className="inline-flex items-center gap-2 font-semibold text-text">
+                <BadgeCheck className="h-4.5 w-4.5 text-success" />
+                Quality checked
+              </span>
+              <span className="inline-flex items-center gap-2 text-text-muted">
+                <Truck className="h-4.5 w-4.5 text-accent" />
+                Free delivery
+              </span>
+            </div>
+          </div>
+
+          <div className="lg:pt-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs font-extrabold uppercase text-accent">
                 {product.category?.name || 'Product'}
-              </p>
-              <h1 className="mt-2 text-2xl font-bold leading-tight tracking-tight sm:text-4xl">
-                {product.name}
-              </h1>
-              <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5">
-                <RatingStars value={proof.rating} count={proof.reviews} compact size="sm" />
-                <span className="flex items-center gap-1.5 text-xs text-text-muted">
-                  <Users className="h-3.5 w-3.5 text-info" />
-                  {plusCount(proof.orders)} delivered
-                </span>
-                <span className="flex items-center gap-1.5 text-xs font-semibold text-success">
-                  <CheckCircle2 className="h-3.5 w-3.5" />
-                  {product.stockQuantity && product.stockQuantity > 0 ? 'In stock' : 'Available'}
-                </span>
-              </div>
+              </span>
+              {product.badge && <span className="h-1 w-1 rounded-full bg-border" />}
+              {product.badge && (
+                <span className="text-xs font-bold uppercase text-text-muted">{product.badge}</span>
+              )}
             </div>
 
-            {/* Mobile-only inline price block (since sidebar is hidden on mobile until sticky bar appears) */}
-            <div className="mt-5 rounded-xl border border-border bg-bg-elev-2 p-4 lg:hidden">
-              <div className="flex items-baseline gap-3">
-                <span className="text-3xl font-bold text-text">
+            <h1 className="mt-3 font-display text-3xl font-black leading-tight text-text sm:text-4xl lg:text-[2.7rem]">
+              {product.name}
+            </h1>
+            {product.shortDescription && (
+              <p className="mt-3 max-w-2xl text-base leading-7 text-text-muted sm:text-lg">
+                {product.shortDescription}
+              </p>
+            )}
+
+            <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 border-b border-border pb-5 text-sm">
+              <RatingStars value={proof.rating} count={proof.reviews} compact size="sm" />
+              <span className="inline-flex items-center gap-1.5 text-text-muted">
+                <Users className="h-4 w-4 text-accent" />
+                {plusCount(proof.orders)} ordered
+              </span>
+              <span className="inline-flex items-center gap-1.5 font-semibold text-success">
+                <CheckCircle2 className="h-4 w-4" />
+                {product.stockQuantity && product.stockQuantity > 0 ? 'In stock' : 'Available'}
+              </span>
+            </div>
+
+            <div className="py-5">
+              <div className="flex flex-wrap items-baseline gap-3">
+                <span className="text-3xl font-black text-text">
                   {formatMoney(product.priceCents, product.currency)}
                 </span>
                 {product.compareAtCents && (
-                  <span className="text-sm text-text-muted line-through">
+                  <span className="text-base text-text-muted line-through">
                     {formatMoney(product.compareAtCents, product.currency)}
                   </span>
                 )}
+                {discount > 0 && <span className="font-bold text-success">{discount}% off</span>}
               </div>
-              {save > 0 && (
-                <div className="mt-1.5 text-sm font-semibold text-success">
-                  Save {formatMoney(save, product.currency)} ({savePct}% off)
-                </div>
+              <p className="mt-1 text-xs text-text-muted">Inclusive of all taxes</p>
+              {saving > 0 && (
+                <p className="mt-3 inline-flex items-center gap-2 text-sm font-bold text-success">
+                  <Tag className="h-4 w-4" />
+                  You save {formatMoney(saving, product.currency)} on this order
+                </p>
               )}
             </div>
 
-            {/* Product highlights */}
-            <div className="mt-6 rounded-xl border border-border bg-bg-elev-2 p-4 sm:mt-8 sm:p-6">
-              <h2 className="text-base font-semibold sm:text-lg">Product highlights</h2>
-              <ul className="mt-3 grid gap-2 sm:grid-cols-2">
-                {[
-                  product.serviceType && `${product.serviceType} collection`,
-                  product.accountType && `${product.accountType}`,
-                  product.stockQuantity != null && `${product.stockQuantity} in stock`,
-                  'Secure Razorpay checkout',
-                  'Order tracking',
-                  'WhatsApp support',
-                ]
-                  .filter(Boolean)
-                  .map((line) => (
-                    <li key={String(line)} className="flex items-start gap-2 text-sm text-text-muted">
-                      <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-success" />
-                      {line}
-                    </li>
-                  ))}
-              </ul>
-            </div>
-
-            {/* Description */}
-            {product.description && (
-              <div className="mt-6 rounded-xl border border-border bg-bg-elev-2 p-4 sm:mt-8 sm:p-6">
-                <h2 className="text-base font-semibold sm:text-lg">About this product</h2>
-                <div
-                  className="prose-dark mt-3 text-sm sm:text-[15px]"
-                  dangerouslySetInnerHTML={{ __html: product.description }}
-                />
+            <div className="divide-y divide-border border-y border-border">
+              <div className="flex gap-3 py-3.5">
+                <Tag className="mt-0.5 h-5 w-5 shrink-0 text-accent" />
+                <div>
+                  <p className="text-sm font-bold text-text">Special price</p>
+                  <p className="mt-0.5 text-sm text-text-muted">
+                    The displayed discount is already applied.
+                  </p>
+                </div>
               </div>
-            )}
-
-            {/* Trust badges grid */}
-            <div className="mt-6 grid grid-cols-2 gap-3 sm:mt-8 sm:grid-cols-4 sm:gap-4">
-              {[
-                { icon: ShieldCheck, label: 'Secure payment' },
-                { icon: Zap,         label: 'Fast shipping' },
-                { icon: RefreshCw,   label: 'Easy support' },
-                { icon: Headphones,  label: 'WhatsApp help' },
-              ].map(({ icon: Icon, label }) => (
-                <div
-                  key={label}
-                  className="flex flex-col items-center gap-2 rounded-xl border border-border bg-bg-elev-2 p-3 text-center sm:p-4"
-                >
-                  <Icon className="h-5 w-5 text-success sm:h-6 sm:w-6" />
-                  <span className="text-xs font-semibold sm:text-sm">{label}</span>
+              <div className="flex gap-3 py-3.5">
+                <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-success" />
+                <div>
+                  <p className="text-sm font-bold text-text">Secure payment</p>
+                  <p className="mt-0.5 text-sm text-text-muted">
+                    UPI, cards, wallets and netbanking via Razorpay.
+                  </p>
                 </div>
-              ))}
-            </div>
-
-            {/* How delivery works */}
-            <div className="mt-6 rounded-xl border border-border bg-bg-elev-2 p-4 sm:mt-8 sm:p-6">
-              <h2 className="text-base font-semibold sm:text-lg">How delivery works</h2>
-              <ol className="mt-4 space-y-3 text-sm text-text-muted">
-                {[
-                  { t: 'Tap Buy now', d: 'Enter your name, phone, email, quantity, and optional note.' },
-                  { t: 'Pay with Razorpay', d: 'Use UPI, cards, wallets, or netbanking through secure Razorpay checkout.' },
-                  { t: 'Order is confirmed', d: 'Payment is verified automatically and your order number is created.' },
-                  { t: 'Track delivery', d: 'Use Track Order or WhatsApp support for fulfillment updates.' },
-                ].map((s, i) => (
-                  <li key={s.t} className="flex gap-3">
-                    <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-accent-soft text-xs font-bold text-accent">
-                      {i + 1}
-                    </span>
-                    <div>
-                      <div className="text-sm font-semibold text-text">{s.t}</div>
-                      <div className="text-xs leading-relaxed sm:text-sm">{s.d}</div>
-                    </div>
-                  </li>
-                ))}
-              </ol>
-            </div>
-          </div>
-
-          {/* ─────── Right: sticky purchase panel (desktop only) ─────── */}
-          <aside className="hidden lg:sticky lg:top-32 lg:block lg:h-max">
-            <div className="rounded-xl border border-border bg-bg-elev-2 p-5 shadow-soft">
-              {product.badge && (
-                <span className="badge-best mb-3 inline-flex">{product.badge}</span>
-              )}
-              <div className="rounded-lg border border-border bg-bg-elev-1 p-4">
-                <div className="text-[11px] font-semibold uppercase tracking-wider text-text-dim">
-                  Store price
-                </div>
-                <div className="mt-1 flex items-baseline gap-3">
-                  <span className="text-3xl font-bold text-text">
-                    {formatMoney(product.priceCents, product.currency)}
-                  </span>
-                  {product.compareAtCents && (
-                    <span className="text-sm text-text-muted line-through">
-                      {formatMoney(product.compareAtCents, product.currency)}
-                    </span>
-                  )}
-                </div>
-                {save > 0 && (
-                  <div className="mt-1 inline-flex items-center gap-1.5 text-sm font-semibold text-success">
-                    <Tag className="h-3.5 w-3.5" />
-                    Save {formatMoney(save, product.currency)} ({savePct}%)
-                  </div>
-                )}
               </div>
+            </div>
 
-              <dl className="mt-5 space-y-3 text-sm">
-                {product.serviceType && (
-                  <Row label="Category" value={product.serviceType} />
-                )}
-                {product.accountType && <Row label="Variant" value={product.accountType} />}
-                {product.stockQuantity != null && <Row label="Stock" value={`${product.stockQuantity} available`} />}
-                <Row
-                  label="Payment"
-                  value={
-                    <span className="inline-flex items-center gap-1 text-success">
-                      <Zap className="h-3.5 w-3.5" />
-                      Razorpay
-                    </span>
-                  }
-                />
-              </dl>
+            <ProductPurchaseActions product={product} />
 
-              <PendingLinkButton
-                href={`/checkout?product=${product.slug}`}
-                className="btn-accent mt-5 w-full"
+            <div className="mt-5 flex flex-wrap items-center justify-between gap-4">
+              <a
+                href={whatsappUrl}
+                className="inline-flex h-11 items-center gap-2 rounded-md border border-border px-4 text-sm font-bold text-text transition hover:border-success hover:text-success"
               >
-                Buy now — {formatMoney(product.priceCents, product.currency)}
-              </PendingLinkButton>
-              <div className="mt-2">
-                <AddToCartButton product={product} />
-              </div>
-              <a href={whatsappUrl} className="btn-whatsapp mt-2 w-full">
                 <MessageCircle className="h-4 w-4" />
-                Chat support
+                Ask before buying
               </a>
-
-              <div className="mt-5 border-t border-border pt-4">
-                <div className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-text-dim">
-                  Payment options
-                </div>
+              <div className="min-w-[210px]">
                 <PaymentMethods />
               </div>
-
-              <div className="mt-4 flex items-start gap-2 rounded-lg bg-success-soft p-3 text-xs text-success">
-                <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" />
-                <span>
-                  Pay securely with Razorpay. Message us on WhatsApp for delivery or product support.
-                </span>
-              </div>
-            </div>
-          </aside>
-        </div>
-      </article>
-
-      {/* ─────── Sticky bottom buy bar (mobile only) ─────── */}
-      <div
-        className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-bg-elev-1/95 backdrop-blur lg:hidden"
-        style={{ paddingBottom: 'env(safe-area-inset-bottom, 0)' }}
-      >
-        <div className="mx-auto flex max-w-page items-center gap-3 px-3 py-3">
-          <div className="min-w-0 flex-1">
-            <div className="text-[10px] font-semibold uppercase tracking-wider text-text-dim">
-              Store price
-            </div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-lg font-bold text-text">
-                {formatMoney(product.priceCents, product.currency)}
-              </span>
-              {savePct > 0 && (
-                <span className="text-xs font-semibold text-success">{savePct}% off</span>
-              )}
             </div>
           </div>
-          <a
-            href={whatsappUrl}
-            className="grid h-11 w-11 shrink-0 place-items-center rounded-md border border-border bg-bg-glass text-whatsapp"
-            aria-label="Chat support"
-          >
-            <MessageCircle className="h-5 w-5" />
-          </a>
-          <PendingLinkButton
-            href={`/checkout?product=${product.slug}`}
-            className="btn-accent h-11 flex-1 !px-4 text-[14px]"
-          >
-            Buy now
-          </PendingLinkButton>
-          <AddToCartButton product={product} compact />
-        </div>
-      </div>
-    </>
-  );
-}
+        </section>
 
-function Row({ label, value }: { label: string; value: React.ReactNode }) {
-  return (
-    <div className="flex items-center justify-between gap-3">
-      <dt className="text-text-muted">{label}</dt>
-      <dd className="font-semibold text-text">{value}</dd>
-    </div>
+        <section className="mt-12 border-y border-border py-10 lg:mt-16">
+          <p className="text-xs font-extrabold uppercase text-accent">Why you will love it</p>
+          <h2 className="mt-2 font-display text-2xl font-black text-text">Product highlights</h2>
+          <div className="mt-6 grid gap-x-8 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
+            {highlights.map((highlight) => (
+              <div key={highlight} className="flex items-start gap-3 text-sm leading-6 text-text">
+                <CheckCircle2 className="mt-0.5 h-4.5 w-4.5 shrink-0 text-success" />
+                <span>{highlight}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="grid gap-10 py-12 lg:grid-cols-[minmax(0,1fr)_420px] lg:py-14">
+          <div>
+            <p className="text-xs font-extrabold uppercase text-accent">Know your product</p>
+            <h2 className="mt-2 font-display text-2xl font-black text-text">About this product</h2>
+            {product.description ? (
+              <div
+                className="prose-dark mt-4 max-w-3xl text-sm leading-7 text-text-muted sm:text-base"
+                dangerouslySetInnerHTML={{ __html: product.description }}
+              />
+            ) : (
+              <p className="mt-4 text-text-muted">{product.shortDescription}</p>
+            )}
+          </div>
+
+          <div className="grid grid-cols-2 gap-x-6 gap-y-6 border-border lg:border-l lg:pl-8">
+            {[
+              { icon: ShieldCheck, title: 'Secure pay', text: 'Razorpay protected' },
+              { icon: PackageCheck, title: 'Order updates', text: 'Clear order status' },
+              { icon: RefreshCw, title: 'Buyer care', text: 'Support after order' },
+              { icon: Headphones, title: 'Human help', text: 'Real assistance' },
+            ].map(({ icon: Icon, title, text }) => (
+              <div key={title}>
+                <Icon className="h-5 w-5 text-accent" />
+                <p className="mt-2 text-sm font-bold text-text">{title}</p>
+                <p className="mt-1 text-xs leading-5 text-text-muted">{text}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      </main>
+    </>
   );
 }

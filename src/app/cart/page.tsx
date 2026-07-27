@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Loader2, Minus, Package, Plus, ShoppingBag, Trash2, UserRound } from 'lucide-react';
+import { Loader2, Minus, Package, Plus, ShoppingBag, Trash2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { formatMoney } from '@/lib/api';
 import {
@@ -16,6 +16,7 @@ import {
   type CartItem,
 } from '@/lib/cart';
 import { AUTH_EVENT, getAuthToken } from '@/lib/auth';
+import AccountGate from '@/components/AccountGate';
 
 export default function CartPage() {
   const [items, setItems] = useState<CartItem[]>([]);
@@ -105,31 +106,21 @@ export default function CartPage() {
 
   if (needsLogin) {
     return (
-      <div className="mx-auto max-w-page px-3 py-10 sm:px-4 sm:py-16">
-        <div className="rounded-lg border border-border bg-bg-elev-2 px-4 py-14 text-center shadow-card">
-          <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-marketplace-chip text-accent">
-            <UserRound className="h-8 w-8" />
-          </div>
-          <h1 className="mt-5 text-2xl font-black">Login to use cart</h1>
-          <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-text-muted">
-            Your cart is saved in your account and loaded from the server.
-          </p>
-          <div className="mt-6 flex flex-wrap justify-center gap-3">
-            <Link href="/login?next=%2Fcart" className="btn-accent inline-flex">
-              Login
-            </Link>
-            <Link href="/signup?next=%2Fcart" className="btn-ghost inline-flex">
-              Create account
-            </Link>
-          </div>
-        </div>
-      </div>
+      <AccountGate
+        icon={ShoppingBag}
+        eyebrow="Your Glownari bag"
+        title="Your favourites, ready when you are"
+        description="Sign in to keep your selected products together and continue shopping without losing your bag."
+        benefits={['Your bag stays saved across devices', 'Buy one item or checkout the full bag', 'See prices and quantities before payment']}
+        loginHref="/login?next=%2Fcart"
+        signupHref="/signup?next=%2Fcart"
+      />
     );
   }
 
   if (loading) {
     return (
-      <div className="mx-auto grid min-h-[320px] max-w-page place-items-center px-3 py-10 sm:px-4">
+      <div className="site-container grid min-h-[320px] place-items-center py-10">
         <div className="inline-flex items-center gap-2 text-sm font-semibold text-text-muted">
           <Loader2 className="h-4 w-4 animate-spin text-accent" />
           Loading cart...
@@ -140,29 +131,28 @@ export default function CartPage() {
 
   if (items.length === 0) {
     return (
-      <div className="mx-auto max-w-page px-3 py-10 sm:px-4 sm:py-16">
-        <div className="rounded-lg border border-border bg-bg-elev-2 px-4 py-14 text-center shadow-card">
-          <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-marketplace-chip text-accent">
-            <ShoppingBag className="h-8 w-8" />
-          </div>
-          <h1 className="mt-5 text-2xl font-black">Your cart is empty</h1>
-          <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-text-muted">
-            Add products from the home page or category pages. Your cart will stay saved in this browser.
+      <div className="site-container page-content">
+        <section className="flex flex-col items-center border-y border-border bg-bg-elev-1 px-5 py-10 text-center sm:py-14">
+          <span className="grid h-14 w-14 place-items-center rounded-full bg-accent-soft text-accent">
+            <ShoppingBag className="h-7 w-7" />
+          </span>
+          <h1 className="mt-5 text-2xl font-black">Your bag has room for something lovely</h1>
+          <p className="mt-2 max-w-md text-sm leading-6 text-text-muted">
+            Browse fresh picks, add what feels right, and come back here whenever you are ready.
           </p>
-          <Link href="/#products" className="btn-accent mt-6 inline-flex">
-            Start shopping
-          </Link>
-        </div>
+          <Link href="/#products" className="btn-accent mt-6 inline-flex">Browse products</Link>
+        </section>
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-page px-3 py-5 sm:px-4 sm:py-8">
-      <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+    <div className="site-container page-content">
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-accent">Shopping cart</p>
-          <h1 className="mt-1 text-2xl font-black sm:text-3xl">My cart ({totalItems} items)</h1>
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-accent">Your selection</p>
+          <h1 className="mt-1 text-2xl font-black sm:text-3xl">Shopping bag</h1>
+          <p className="mt-1 text-sm text-text-muted">{totalItems} items ready to review</p>
         </div>
         <button
           type="button"
@@ -277,7 +267,7 @@ export default function CartPage() {
         </section>
 
         <aside className="h-fit rounded-lg border border-border bg-bg-elev-2 p-4 shadow-card sm:p-5 lg:sticky lg:top-24">
-          <h2 className="text-base font-black">Price details</h2>
+          <h2 className="text-base font-black">Order summary</h2>
           <div className="mt-4 space-y-3 border-t border-border pt-4 text-sm">
             <Row label={`Price (${totalItems} items)`} value={formatMoney(mrpTotal, currency)} />
             <Row label="Discount" value={savings ? `-${formatMoney(savings, currency)}` : formatMoney(0, currency)} tone="success" />
@@ -288,11 +278,11 @@ export default function CartPage() {
           </div>
           {savings > 0 && (
             <div className="mt-4 rounded-md bg-success-soft px-3 py-2 text-sm font-bold text-success">
-              You will save {formatMoney(savings, currency)} on this cart.
+              Lovely choice. You save {formatMoney(savings, currency)} on this bag.
             </div>
           )}
           <Link href="/checkout?cart=1" className="btn-accent mt-5 w-full">
-            Checkout all items
+            Checkout all {totalItems} items
           </Link>
           <Link href="/#products" className="btn-ghost mt-3 w-full">
             Continue shopping

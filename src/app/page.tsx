@@ -1,28 +1,26 @@
 import Link from 'next/link';
 import {
-  Package,
+  Clock3,
+  HeartHandshake,
+  MessageCircle,
   Search,
-  Sparkles,
   Star,
   ShoppingBag,
+  Tag,
+  TicketPercent,
 } from 'lucide-react';
 import ProductCard from '@/components/ProductCard';
 import Rail, { RailItem } from '@/components/Rail';
-import CategoryBadge from '@/components/CategoryBadge';
 import PendingLinkButton from '@/components/PendingLinkButton';
 import HeroPromoSlider from '@/components/HeroPromoSlider';
 import {
-  compactCount,
-  formatMoney,
   getBanners,
   getCategories,
   getProducts,
   getPromo,
   getSocialProof,
   getTestimonials,
-  plusCount,
   type PromoConfig,
-  type SocialProof,
   type GlownariCategory,
   type GlownariProduct,
   type GlownariTestimonial,
@@ -33,14 +31,15 @@ export const revalidate = 60;
 const FESTIVAL_BACKGROUND_IMAGE =
   process.env.NEXT_PUBLIC_FESTIVAL_BACKGROUND_IMAGE ||
   'https://images.unsplash.com/photo-1605292356183-a77d0a9c9d1d?w=1800&auto=format&fit=crop&q=85';
+const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '918506965129';
 
 export default async function HomePage() {
-  const [categories, featured, products, proof, promo] = await Promise.all([
+  const [categories, featured, products, promo, proof] = await Promise.all([
     getCategories(),
     getProducts({ featured: true, take: 12 }),
     getProducts({ take: 40 }),
-    getSocialProof(),
     getPromo(),
+    getSocialProof(),
   ]);
   const banners = await getBanners();
   const testimonials = await getTestimonials();
@@ -66,42 +65,54 @@ export default async function HomePage() {
       {hero && (
         <Hero
           product={hero}
-          proof={proof}
-          totalProducts={products.total || allProducts.length}
-          saleProducts={trending.slice(0, 10)}
           promo={promo}
         />
       )}
       <CategoryStrip categories={categories} productCounts={productCounts} />
 
       <div id="trending" />
+      <div id="festival-products" />
       {trending.length > 0 && (
-        <Rail eyebrow="Limited-time picks" title="Today&apos;s scrolling deals" seeAllHref="#products">
+        <Rail
+          eyebrow="Festival edit"
+          title="Products in this sale"
+          description="Celebration-ready favourites chosen for gifting, dressing up and everyday joy."
+          seeAllHref="#products"
+        >
           {trending.map((product) => (
-            <RailItem key={product.id} className="w-[64vw] sm:w-[34vw] md:w-[220px] lg:w-[230px]">
-              <ProductCard product={product} poster />
+            <RailItem key={product.id} className="w-[72vw] sm:w-[42vw] md:w-[224px] lg:w-[232px]">
+              <ProductCard product={product} poster rating={proof.rating} reviewCount={proof.reviews} />
             </RailItem>
           ))}
         </Rail>
       )}
 
       {budget.length > 0 && (
-        <Rail eyebrow="Smart shopping" title="Best value products">
+        <Rail
+          eyebrow="Beauty on budget"
+          title="Best value finds"
+          description="Useful little upgrades that feel special without stretching your budget."
+        >
           {budget.map((product) => (
-            <RailItem key={product.id} className="w-[64vw] sm:w-[34vw] md:w-[220px] lg:w-[230px]">
-              <ProductCard product={product} poster />
+            <RailItem key={product.id} className="w-[72vw] sm:w-[42vw] md:w-[224px] lg:w-[232px]">
+              <ProductCard product={product} poster rating={proof.rating} reviewCount={proof.reviews} />
             </RailItem>
           ))}
         </Rail>
       )}
 
-      {latest.length > 0 && <section id="products" className="mx-auto max-w-page px-3 py-8 sm:px-4 sm:py-12">
-        <div className="mb-4 flex flex-wrap items-end justify-between gap-3 sm:mb-6">
+      <PersonalShoppingHelp />
+
+      {latest.length > 0 && <section id="products" className="site-container section-content">
+        <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-accent">
-              Fresh collection
+            <p className="text-[11px] font-black uppercase tracking-[0.18em] text-accent">
+              Glownari collection
             </p>
-            <h2 className="mt-1 text-xl font-bold sm:text-3xl">Recommended for your store</h2>
+            <h2 className="font-display mt-1 text-2xl sm:text-[32px]">Shop the look</h2>
+            <p className="mt-1.5 max-w-xl text-xs leading-5 text-text-muted sm:text-sm">
+              A mix of practical favourites and feel-good finds, all in one place.
+            </p>
           </div>
           <div className="inline-flex items-center gap-2 rounded-md border border-border bg-bg-elev-2 px-3 py-2 text-xs font-semibold text-text-muted">
             <Search className="h-4 w-4 text-accent" />
@@ -111,7 +122,12 @@ export default async function HomePage() {
 
         <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {latest.map((product) => (
-            <ProductCard key={product.id} product={product} />
+            <ProductCard
+              key={product.id}
+              product={product}
+              rating={proof.rating}
+              reviewCount={proof.reviews}
+            />
           ))}
         </div>
       </section>}
@@ -121,88 +137,91 @@ export default async function HomePage() {
   );
 }
 
+function PersonalShoppingHelp() {
+  const message = encodeURIComponent(
+    'Hi Glownari, I need help choosing a product. Can you suggest something for me?',
+  );
+
+  return (
+    <section className="border-y border-border bg-bg-elev-3">
+      <div className="site-container flex flex-col gap-5 py-7 sm:flex-row sm:items-center sm:justify-between sm:py-8">
+        <div className="flex items-start gap-4">
+          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-bg-elev-1 text-accent">
+            <HeartHandshake className="h-5 w-5" />
+          </span>
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-accent">
+              A little help, from a real person
+            </p>
+            <h2 className="font-display mt-1 text-xl text-text sm:text-2xl">
+              Not sure what to pick?
+            </h2>
+            <p className="mt-1 max-w-xl text-sm leading-6 text-text-muted">
+              Tell us the occasion, budget or who you are shopping for. We will help you narrow it down.
+            </p>
+          </div>
+        </div>
+        <a
+          href={`https://wa.me/${WHATSAPP_NUMBER}?text=${message}`}
+          className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-md bg-text px-5 text-sm font-bold text-bg transition hover:bg-accent hover:text-white"
+        >
+          <MessageCircle className="h-4 w-4" />
+          Ask Glownari
+        </a>
+      </div>
+    </section>
+  );
+}
+
 function Hero({
   product,
-  proof,
-  totalProducts,
-  saleProducts,
   promo,
 }: {
   product?: GlownariProduct;
-  proof: SocialProof;
-  totalProducts: number;
-  saleProducts: GlownariProduct[];
   promo: PromoConfig;
 }) {
   if (!product) return null;
 
   const save = product.compareAtCents ? Math.max(product.compareAtCents - product.priceCents, 0) : 0;
   const savePct = product.compareAtCents ? Math.round((save / product.compareAtCents) * 100) : 0;
-  const productsForSale = saleProducts.length > 0 ? saleProducts : [product];
   const backgroundImage = promo.heroBackgroundImage || FESTIVAL_BACKGROUND_IMAGE;
   const saleLabel = promo.heroSaleLabel || 'Diwali festival sale is live';
 
   return (
-    <section className="bg-[linear-gradient(180deg,#f4f4f6_0%,var(--bg)_100%)] py-2 dark:bg-[linear-gradient(180deg,#18181c_0%,var(--bg)_100%)]">
-      <div className="mx-auto max-w-page px-2 py-2 sm:px-4 sm:py-4">
+    <section className="bg-bg-elev-1 py-5 sm:py-6">
+      <div className="site-container">
         <div
-          className="relative overflow-hidden rounded-xl border border-white/15 bg-[#18181c] bg-cover bg-center shadow-card"
+          className="relative min-h-[320px] overflow-hidden rounded-lg border border-border bg-bg-elev-3 bg-cover bg-center shadow-card sm:min-h-[338px]"
           style={{ backgroundImage: `url(${backgroundImage})` }}
         >
-          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,10,20,0.88)_0%,rgba(8,17,31,0.72)_44%,rgba(20,15,35,0.44)_100%)]" />
-          <div className="absolute inset-y-0 right-0 hidden w-1/2 bg-[radial-gradient(circle_at_70%_20%,rgba(252,39,121,0.28),transparent_14rem),radial-gradient(circle_at_88%_85%,rgba(255,255,255,0.18),transparent_16rem)] lg:block" />
-          <div className="absolute inset-x-0 bottom-0 h-28 bg-[linear-gradient(0deg,rgba(252,39,121,0.14),transparent)]" />
+          <div className="absolute inset-0 bg-black/20 sm:hidden" />
+          <div className="hero-copy-surface absolute inset-y-0 left-0 w-full sm:w-[64%] lg:w-[58%]" />
 
-          <div className="relative z-10 grid min-w-0 items-stretch gap-3 p-3 sm:gap-4 sm:p-5 lg:grid-cols-[minmax(0,0.92fr)_minmax(420px,0.8fr)] lg:p-5">
-            <div className="flex min-w-0 flex-col justify-between lg:min-h-[354px]">
-              <div>
-              <div className="inline-flex max-w-full items-center gap-2 rounded-full border border-white/25 bg-white/12 px-3 py-1 text-[10px] font-black uppercase tracking-wide text-rose-100 sm:text-[11px]">
-                <Sparkles className="h-3.5 w-3.5 text-rose-100" />
-                <span className="truncate">{saleLabel}</span>
-              </div>
-              <h1 className="mt-3 max-w-2xl text-3xl font-black leading-[1.04] text-white sm:text-5xl">
-                Premium festive deals on favourite products
-              </h1>
-              <p className="mt-2 max-w-xl text-sm font-medium leading-5 text-slate-200 sm:mt-3 sm:leading-6">
-                Diwali campaign background, scrolling product cards, cart, coupons, Razorpay checkout, and order tracking.
-              </p>
+          <div className="relative z-10 flex min-h-[320px] max-w-[790px] flex-col justify-center px-5 py-6 sm:min-h-[338px] sm:px-10 lg:px-12">
+            <div className="inline-flex w-fit max-w-full items-center gap-2 text-[10px] font-bold uppercase tracking-[0.18em] text-accent sm:text-[11px]">
+              <Tag className="h-3.5 w-3.5" />
+              <span className="truncate">{saleLabel}</span>
+            </div>
+            <h1 className="font-display mt-3 max-w-[19ch] text-4xl leading-[1.04] text-text sm:text-5xl lg:text-[52px]">
+              Premium festive deals on favourite products
+            </h1>
+            <p className="mt-3 max-w-lg text-sm font-medium leading-6 text-text-muted sm:text-base">
+              Thoughtfully curated fashion, beauty, jewellery and gifting picks at prices worth celebrating.
+            </p>
 
-              <div className="mt-3 grid max-w-xl grid-cols-3 gap-1.5 sm:mt-4 sm:gap-2">
-                <SaleChip label="Min. off" value={savePct > 0 ? `${savePct}%` : '45%'} />
-                <SaleChip label="Coupon" value="SALE50" />
-                <SaleChip label="Ends in" value="2 days" />
-              </div>
-
-              <div className="mt-3 grid grid-cols-2 gap-2 sm:mt-4 sm:flex sm:flex-row">
-                <Link href="#festival-products" className="inline-flex h-10 items-center justify-center rounded-md bg-white px-5 text-sm font-black text-text shadow-[0_10px_28px_rgba(255,255,255,0.18)] transition hover:-translate-y-0.5 hover:bg-[#fff4f8]">
-                  Shop sale
-                </Link>
-                <PendingLinkButton href={`/products/${product.slug}`} className="inline-flex h-10 items-center justify-center rounded-md border border-white/20 bg-white/10 px-5 text-sm font-black text-white backdrop-blur transition hover:bg-white/15">
-                  View best deal
-                </PendingLinkButton>
-              </div>
-              </div>
-
-              <div className="mt-3 grid grid-cols-3 gap-1.5 sm:mt-4 sm:max-w-lg sm:gap-2">
-                <Metric label="Products" value={compactCount(totalProducts)} />
-                <Metric label="Orders" value={plusCount(proof.orders)} />
-                <Metric label="Rating" value={proof.rating.toFixed(1)} />
-              </div>
+            <div className="mt-5 flex max-w-xl flex-wrap items-center gap-x-5 gap-y-3 border-y border-border py-3">
+              <SaleChip icon={TicketPercent} label="Min. off" value={savePct > 0 ? `${savePct}%` : '45%'} />
+              <SaleChip icon={Tag} label="Coupon" value="SALE50" />
+              <SaleChip icon={Clock3} label="Ends in" value="2 days" />
             </div>
 
-            <div className="min-w-0 overflow-hidden rounded-xl border border-white/5 bg-black/28 p-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_18px_46px_rgba(0,0,0,0.30)] backdrop-blur-xl sm:p-3 lg:h-full">
-              <div className="flex items-start justify-between gap-3 px-1 pb-2">
-                <div className="min-w-0">
-                  <p className="truncate text-[10px] font-black uppercase tracking-[0.16em] text-rose-100 sm:text-[11px]">Scrolling festival picks</p>
-                  <h2 className="mt-0.5 text-base font-black text-white sm:text-lg">Products in this sale</h2>
-                </div>
-                <div className="rounded-md bg-accent px-3 py-1 text-xs font-black text-white shadow-cta">LIVE</div>
-              </div>
-              <div id="festival-products" className="no-scrollbar flex max-w-full snap-x gap-2 overflow-x-auto pb-1 sm:gap-3">
-                {productsForSale.map((saleProduct) => (
-                  <FestivalProductCard key={saleProduct.id} product={saleProduct} />
-                ))}
-              </div>
+            <div className="mt-5 flex flex-wrap gap-3">
+              <Link href="#festival-products" className="inline-flex h-11 items-center justify-center rounded-md bg-accent px-6 text-sm font-bold text-white transition hover:bg-accent-strong">
+                Shop sale
+              </Link>
+              <PendingLinkButton href={`/products/${product.slug}`} className="inline-flex h-11 items-center justify-center rounded-md border border-border-strong bg-bg-elev-1/80 px-6 text-sm font-bold text-text transition hover:border-accent hover:text-accent">
+                View best deal
+              </PendingLinkButton>
             </div>
           </div>
         </div>
@@ -211,58 +230,24 @@ function Hero({
   );
 }
 
-function FestivalProductCard({ product }: { product: GlownariProduct }) {
-  const save = product.compareAtCents ? Math.max(product.compareAtCents - product.priceCents, 0) : 0;
-  const savePct = product.compareAtCents ? Math.round((save / product.compareAtCents) * 100) : 0;
-
+function SaleChip({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: typeof Tag;
+  label: string;
+  value: string;
+}) {
   return (
-    <Link
-      href={`/products/${product.slug}`}
-      className="group min-w-[126px] snap-start overflow-hidden rounded-lg border border-white/16 bg-white text-slate-950 shadow-[0_14px_34px_rgba(0,0,0,0.28)] transition hover:-translate-y-1 hover:shadow-[0_18px_42px_rgba(0,0,0,0.36)] sm:min-w-[158px]"
-    >
-      <div className="relative aspect-square bg-slate-100">
-        {product.coverImage ? (
-          <img src={product.coverImage} alt={product.name} className="h-full w-full object-cover transition duration-300 group-hover:scale-105" />
-        ) : (
-          <div className="grid h-full place-items-center bg-slate-100">
-            <Package className="h-8 w-8 text-slate-400" />
-          </div>
-        )}
-        {savePct > 0 && <span className="absolute left-1.5 top-1.5 rounded-md bg-accent px-1.5 py-0.5 text-[10px] font-black text-white shadow-sm sm:left-2 sm:top-2 sm:px-2 sm:py-1 sm:text-[11px]">{savePct}% OFF</span>}
+    <div className="flex min-w-[112px] items-center gap-2.5">
+      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
+        <Icon className="h-4 w-4" />
+      </span>
+      <div>
+        <div className="text-[9px] font-bold uppercase tracking-[0.12em] text-text-dim">{label}</div>
+        <div className="text-sm font-black text-text">{value}</div>
       </div>
-      <div className="p-2 sm:p-2.5">
-        <div className="line-clamp-2 min-h-[34px] text-xs font-black leading-tight text-slate-950 sm:min-h-[36px] sm:text-sm">{product.name}</div>
-        <div className="mt-2 flex items-end justify-between gap-2">
-          <div>
-            <div className="text-sm font-black text-slate-950 sm:text-base">{formatMoney(product.priceCents, product.currency)}</div>
-            {product.compareAtCents && (
-              <div className="text-xs font-semibold text-slate-500 line-through">
-                {formatMoney(product.compareAtCents, product.currency)}
-              </div>
-            )}
-          </div>
-          <span className="rounded-md border border-accent/15 bg-accent-soft px-1.5 py-1 text-[10px] font-black text-accent sm:px-2 sm:text-[11px]">ADD</span>
-        </div>
-        {save > 0 && <div className="mt-1.5 text-[11px] font-black text-emerald-700">Save {formatMoney(save, product.currency)}</div>}
-      </div>
-    </Link>
-  );
-}
-
-function Metric({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-lg border border-white/5 bg-white/10 px-3 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_10px_26px_rgba(0,0,0,0.18)] backdrop-blur">
-      <div className="text-lg font-black text-white">{value}</div>
-      <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-300">{label}</div>
-    </div>
-  );
-}
-
-function SaleChip({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-lg border border-white/5 bg-white/10 px-3 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_10px_26px_rgba(0,0,0,0.18)] backdrop-blur">
-      <div className="text-[10px] font-black uppercase tracking-wide text-rose-200">{label}</div>
-      <div className="mt-0.5 text-sm font-black text-white sm:text-base">{value}</div>
     </div>
   );
 }
@@ -277,36 +262,30 @@ function CategoryStrip({
   const visible = categories.filter((category) => (productCounts[category.slug] || 0) > 0).slice(0, 12);
   if (visible.length === 0) return null;
   return (
-    <section className="border-y border-border bg-bg-elev-1">
-      <div className="mx-auto max-w-page px-3 py-3 sm:px-4">
-        <div className="no-scrollbar flex snap-x gap-3 overflow-x-auto">
+    <section className="border-b border-border bg-bg-elev-1">
+      <div className="site-container py-5 sm:py-6">
+        <div className="no-scrollbar flex snap-x justify-start gap-6 overflow-x-auto lg:justify-between">
           {visible.map((category) => (
             <Link
               key={category.id}
               href={`/category/${category.slug}`}
-              className="group relative flex min-h-[126px] min-w-[142px] snap-start flex-col justify-end overflow-hidden rounded-lg border border-border bg-bg-elev-2 p-3 text-left shadow-card transition hover:-translate-y-0.5 hover:border-accent/35 sm:min-w-[166px]"
+              className="group flex min-w-[86px] snap-start flex-col items-center text-center transition hover:text-accent sm:min-w-[96px]"
             >
-              {category.image ? (
-                <>
+              <span className="relative grid h-16 w-16 place-items-center overflow-hidden rounded-full border border-border bg-bg-elev-3 text-accent transition group-hover:border-accent">
+                {category.image ? (
                   <img
                     src={category.image}
-                    alt=""
+                    alt={category.name}
                     className="absolute inset-0 h-full w-full object-cover transition duration-300 group-hover:scale-105"
                   />
-                  <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.04)_0%,rgba(0,0,0,0.28)_48%,rgba(0,0,0,0.74)_100%)]" />
-                </>
-              ) : (
-                <span className="absolute left-3 top-3 grid h-11 w-11 place-items-center rounded-full bg-marketplace-chip text-accent">
-                  <ShoppingBag className="h-5 w-5" />
-                </span>
-              )}
-              <div className="relative z-10">
-                {category.badge && <CategoryBadge label={category.badge} color={category.badgeColor} className="mb-2" />}
-                <span className={`line-clamp-1 text-sm font-black ${category.image ? 'text-white' : 'text-text'}`}>{category.name}</span>
-                <span className={`mt-0.5 block text-[11px] font-semibold ${category.image ? 'text-white/82' : 'text-text-muted'}`}>
-                  {productCounts[category.slug] || 0} items
-                </span>
-              </div>
+                ) : (
+                  <ShoppingBag className="h-5 w-5" strokeWidth={2.4} />
+                )}
+              </span>
+              <span className="mt-2.5 line-clamp-1 text-xs font-bold text-text group-hover:text-accent sm:text-sm">{category.name}</span>
+              <span className="mt-1 text-[10px] font-medium text-text-dim">
+                {productCounts[category.slug] || 0} items
+              </span>
             </Link>
           ))}
         </div>
@@ -317,12 +296,12 @@ function CategoryStrip({
 
 function TestimonialsSection({ testimonials }: { testimonials: GlownariTestimonial[] }) {
   return (
-    <section className="border-y border-border bg-bg-elev-1 py-8 sm:py-10">
-      <div className="mx-auto max-w-page px-3 sm:px-4">
-        <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
+    <section className="border-y border-border bg-bg-elev-1">
+      <div className="site-container section-content">
+        <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-wider text-accent">Customer stories</p>
-            <h2 className="mt-1 text-2xl font-black sm:text-3xl">Loved by Glownari shoppers</h2>
+            <h2 className="font-display mt-1 text-2xl sm:text-[32px]">Loved by Glownari shoppers</h2>
           </div>
           <div className="inline-flex items-center gap-2 rounded-full border border-border bg-bg-elev-2 px-3 py-2 text-xs font-bold text-text-muted">
             <Star className="h-4 w-4 fill-accent text-accent" />
@@ -332,7 +311,7 @@ function TestimonialsSection({ testimonials }: { testimonials: GlownariTestimoni
 
         <div className="grid gap-3 md:grid-cols-3">
           {testimonials.slice(0, 6).map((item) => (
-            <article key={item.id} className="flex min-h-[220px] flex-col justify-between rounded-xl border border-border bg-bg-elev-2 p-4 shadow-card">
+            <article key={item.id} className="flex min-h-[210px] flex-col justify-between border-t border-border bg-bg-elev-2 px-1 py-5 sm:px-4">
               <div>
                 <div className="flex items-center gap-3">
                   {item.image ? (

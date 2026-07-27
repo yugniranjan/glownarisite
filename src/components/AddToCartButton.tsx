@@ -30,8 +30,8 @@ export default function AddToCartButton({
       <Link
         href="/cart"
         className={compact
-          ? 'grid h-9 w-[38px] place-items-center rounded-lg border border-success/25 bg-success-soft text-success shadow-sm'
-          : 'btn-ghost h-11 px-4 text-success'}
+          ? 'grid h-10 w-10 place-items-center rounded-md border border-success/25 bg-success-soft text-success shadow-sm'
+          : 'inline-flex h-8 w-full items-center justify-center gap-2 rounded-md border border-success/25 bg-success-soft px-4 text-xs font-bold text-success transition hover:border-success/40'}
         aria-label="Go to cart"
       >
         <Check className="h-4 w-4" />
@@ -70,8 +70,8 @@ export default function AddToCartButton({
         }
       }}
       className={compact
-        ? 'grid h-9 w-[38px] place-items-center rounded-lg border border-accent/18 bg-accent-soft text-accent shadow-sm transition hover:border-accent/35 hover:bg-accent hover:text-white disabled:cursor-not-allowed disabled:opacity-70'
-        : 'btn-ghost h-11 px-4'}
+        ? 'grid h-10 w-10 place-items-center rounded-md border border-accent/20 bg-accent-soft text-accent shadow-sm transition hover:border-accent/35 hover:bg-accent hover:text-white disabled:cursor-not-allowed disabled:opacity-70'
+        : 'inline-flex h-8 w-full items-center justify-center gap-2 rounded-md border border-accent/35 bg-transparent px-4 text-xs font-bold text-accent transition hover:bg-accent hover:text-white disabled:cursor-not-allowed disabled:opacity-70'}
       aria-label={`Add ${product.name} to cart`}
     >
       <ShoppingCart className="h-4 w-4" />

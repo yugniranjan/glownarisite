@@ -6,7 +6,7 @@ export default async function PromoBanner() {
   if (!bannerEnabled || !bannerText) return null;
   return (
     <div className="bg-accent text-white">
-      <div className="mx-auto max-w-page px-3 py-2 text-center text-xs font-semibold tracking-wide sm:text-sm">
+      <div className="site-container py-1.5 text-center text-[11px] font-semibold tracking-wide sm:text-xs">
         {bannerText}
       </div>
     </div>

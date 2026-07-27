@@ -14,6 +14,7 @@ import {
 } from '@/lib/api';
 import { fetchMe, getAuthToken, getStoredUser, logout, type StoreUser } from '@/lib/auth';
 import { AUTH_REQUIRED, cartCount, cartSubtotal, fetchCart, type CartItem } from '@/lib/cart';
+import AccountGate from '@/components/AccountGate';
 
 const EMPTY_ADDRESS: GlownariAddressInput = {
   label: '',
@@ -144,7 +145,7 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="mx-auto grid min-h-[320px] max-w-page place-items-center px-3 py-10 sm:px-4">
+      <div className="site-container grid min-h-[320px] place-items-center py-10">
         <div className="inline-flex items-center gap-2 text-sm font-semibold text-text-muted">
           <Loader2 className="h-4 w-4 animate-spin text-accent" />
           Loading profile...
@@ -155,30 +156,25 @@ export default function ProfilePage() {
 
   if (needsLogin || !user) {
     return (
-      <div className="mx-auto max-w-page px-3 py-10 sm:px-4 sm:py-16">
-        <div className="rounded-lg border border-border bg-bg-elev-2 px-4 py-14 text-center shadow-card">
-          <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-marketplace-chip text-accent">
-            <UserRound className="h-8 w-8" />
-          </div>
-          <h1 className="mt-5 text-2xl font-black">Login to view profile</h1>
-          <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-text-muted">
-            Your profile keeps account details, saved addresses, cart, and order shortcuts together.
-          </p>
-          <div className="mt-6 flex flex-wrap justify-center gap-3">
-            <Link href="/login?next=%2Fprofile" className="btn-accent inline-flex">Login</Link>
-            <Link href="/signup?next=%2Fprofile" className="btn-ghost inline-flex">Create account</Link>
-          </div>
-        </div>
-      </div>
+      <AccountGate
+        icon={UserRound}
+        eyebrow="Your Glownari account"
+        title="Your details, all in one place"
+        description="Keep delivery addresses, cart shortcuts and order access ready for your next visit."
+        benefits={['Save more than one delivery address', 'Open your bag and orders quickly', 'Keep contact details available for support']}
+        loginHref="/login?next=%2Fprofile"
+        signupHref="/signup?next=%2Fprofile"
+      />
     );
   }
 
   return (
-    <div className="mx-auto max-w-page px-3 py-6 sm:px-4 sm:py-10">
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+    <div className="site-container page-content">
+      <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-wider text-accent">Account</p>
           <h1 className="mt-1 text-2xl font-black sm:text-3xl">My profile</h1>
+          <p className="mt-1 text-sm text-text-muted">Manage delivery details and your shopping shortcuts.</p>
         </div>
         <button type="button" onClick={logout} className="btn-ghost h-10 px-4">
           <LogOut className="h-4 w-4" />

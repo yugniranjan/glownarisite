@@ -7,6 +7,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 interface Props {
   eyebrow?: string;
   title: string;
+  description?: string;
   seeAllHref?: string;
   children: React.ReactNode;
   /** Tailwind width class for each card slot. Defaults to mobile-first 60vw → 320px desktop. */
@@ -20,9 +21,10 @@ interface Props {
 export default function Rail({
   eyebrow,
   title,
+  description,
   seeAllHref,
   children,
-  itemClass = 'w-[68vw] sm:w-[42vw] md:w-[280px] lg:w-[300px]',
+  itemClass = 'w-[72vw] sm:w-[42vw] md:w-[224px] lg:w-[232px]',
 }: Props) {
   const ref = useRef<HTMLDivElement | null>(null);
   const [canPrev, setCanPrev] = useState(false);
@@ -52,16 +54,21 @@ export default function Rail({
   }
 
   return (
-    <section className="py-6 sm:py-10">
-      <div className="mx-auto max-w-page px-3 sm:px-4">
-        <div className="mb-3 flex items-end justify-between gap-3 sm:mb-5">
-          <div>
+    <section className="py-7 sm:py-8">
+      <div className="site-container">
+        <div className="mb-5 flex items-end justify-between gap-4">
+          <div className="min-w-0">
             {eyebrow && (
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-accent">
+              <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-accent">
                 {eyebrow}
               </p>
             )}
-            <h2 className="mt-1 text-lg font-semibold leading-tight sm:text-2xl">{title}</h2>
+            <h2 className="font-display mt-1 text-xl leading-tight sm:text-[26px]">{title}</h2>
+            {description && (
+              <p className="mt-1.5 max-w-2xl text-xs leading-5 text-text-muted sm:text-sm">
+                {description}
+              </p>
+            )}
           </div>
           <div className="flex items-center gap-2">
             {seeAllHref && (
@@ -79,7 +86,7 @@ export default function Rail({
                 onClick={() => scrollBy(-1)}
                 disabled={!canPrev}
                 aria-label="Scroll left"
-                className="grid h-9 w-9 place-items-center rounded-md border border-border bg-bg-glass text-text disabled:opacity-40"
+                className="grid h-9 w-9 place-items-center rounded-full border border-border bg-bg-elev-2 text-text disabled:opacity-40"
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
@@ -88,7 +95,7 @@ export default function Rail({
                 onClick={() => scrollBy(1)}
                 disabled={!canNext}
                 aria-label="Scroll right"
-                className="grid h-9 w-9 place-items-center rounded-md border border-border bg-bg-glass text-text disabled:opacity-40"
+                className="grid h-9 w-9 place-items-center rounded-full border border-border bg-bg-elev-2 text-text disabled:opacity-40"
               >
                 <ChevronRight className="h-4 w-4" />
               </button>
@@ -99,7 +106,7 @@ export default function Rail({
 
       <div
         ref={ref}
-        className="no-scrollbar mx-auto flex max-w-page snap-x snap-mandatory gap-3 overflow-x-auto px-3 pb-2 sm:gap-4 sm:px-4"
+        className="no-scrollbar site-container flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1 sm:gap-4"
       >
         {Array.isArray(children) ? children : [children]}
       </div>

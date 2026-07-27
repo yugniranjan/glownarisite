@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import {
   ChevronRight,
+  Menu,
   MessageCircle,
   PackageCheck,
   Search,
@@ -53,26 +54,23 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-40">
-      {/* Main bar — minimal on mobile, expands on desktop */}
-      <div className="border-b border-white/10 bg-accent text-white shadow-[0_10px_30px_var(--accent-glow)]">
-        <div className="mx-auto flex h-14 max-w-page items-center gap-2 px-3 sm:h-16 sm:gap-3 sm:px-4 lg:gap-4">
-          {/* Hamburger (mobile only) */}
+      <div className="border-b border-border bg-bg-elev-1/95 text-text backdrop-blur-xl">
+        <div className="site-container flex h-14 items-center gap-2 sm:h-16 sm:gap-3 lg:gap-4">
           <button
             type="button"
             onClick={() => setDrawerOpen(true)}
-            className="grid h-10 w-10 place-items-center rounded-md border border-white/20 bg-white/10 text-white lg:hidden"
+            className="grid h-10 w-10 place-items-center rounded-md border border-border bg-bg-elev-2 text-text lg:hidden"
             aria-label="Open menu"
           >
-            <MenuIcon />
+            <Menu className="h-5 w-5" />
           </button>
 
-          {/* Brand */}
-          <Link href="/" className="flex shrink-0 items-center gap-2 text-white">
+          <Link href="/" className="flex shrink-0 items-center">
             <span
-              className={`inline-flex items-center justify-center overflow-hidden rounded-lg bg-white transition-all duration-300 ${
+              className={`inline-flex items-center justify-center overflow-hidden transition-all duration-300 ${
                 scrolled
-                  ? 'h-10 w-10 p-1'
-                  : 'h-10 w-[156px] px-1.5 py-1 sm:h-12 sm:w-[216px] lg:w-[224px]'
+                  ? 'h-9 w-10'
+                  : 'h-9 w-[152px] sm:h-11 sm:w-[190px] lg:w-[204px]'
               }`}
             >
               <Image
@@ -86,14 +84,12 @@ export default function Header() {
             </span>
           </Link>
 
-          {/* Search — inline on desktop, icon trigger on mobile */}
           <HeaderSearch />
 
-          {/* Mobile search icon */}
           <button
             type="button"
             onClick={() => setSearchOpen((s) => !s)}
-            className="ml-auto grid h-10 w-10 place-items-center rounded-md border border-white/20 bg-white/10 text-white lg:hidden"
+            className="ml-auto grid h-10 w-10 place-items-center rounded-md border border-border bg-bg-elev-2 text-text lg:hidden"
             aria-label="Search"
           >
             {searchOpen ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
@@ -105,42 +101,46 @@ export default function Header() {
             <AccountHeaderButton mobile />
           </div>
 
-          {/* Desktop nav links */}
-          <nav className="ml-auto hidden shrink-0 items-center gap-1.5 text-sm font-bold text-white/90 lg:flex">
-            <Link href="/track-order" className="inline-flex h-10 items-center gap-1.5 rounded-md px-3 transition hover:bg-white/10 hover:text-white">
+          <nav className="ml-auto hidden shrink-0 items-center gap-1 text-sm font-semibold text-text-muted lg:flex">
+            <Link href="/track-order" className="inline-flex h-10 items-center gap-1.5 rounded-md px-2.5 transition hover:bg-bg-glass hover:text-text">
               <PackageCheck className="h-4 w-4" />
               Track
             </Link>
-            <Link href="/#products" className="inline-flex h-10 items-center rounded-md px-3 transition hover:bg-white/10 hover:text-white">Products</Link>
             <CartHeaderLink />
             <AccountHeaderButton />
           </nav>
           <div className="hidden shrink-0 lg:block">
-            <ThemeToggle inverse />
+            <ThemeToggle />
           </div>
 
-          {/* Desktop primary CTA */}
-          <a
-            href={`https://wa.me/${WHATSAPP_NUMBER}`}
-            className="hidden h-10 shrink-0 items-center gap-2 rounded-xl bg-white px-4 text-sm font-black text-accent shadow-sm transition hover:bg-[#fff3f8] hover:shadow-card lg:inline-flex"
-            aria-label="Chat on WhatsApp"
-          >
-            <MessageCircle className="h-4 w-4" />
-            Chat
-          </a>
         </div>
 
-        {/* Slide-down search on mobile */}
         {searchOpen && (
-          <div className="border-t border-white/15 bg-accent lg:hidden">
-            <div className="mx-auto max-w-page px-3 py-2">
+          <div className="border-t border-border bg-bg-elev-1 lg:hidden">
+            <div className="site-container py-2.5">
               <HeaderSearch mobile autoFocus />
             </div>
           </div>
         )}
       </div>
 
-      {/* Mobile drawer */}
+      <div className="hidden border-b border-border bg-bg-elev-1 lg:block">
+        <div className="site-container flex h-11 items-center justify-center gap-1 text-[13px] font-semibold text-text-muted">
+          <Link href="/#products" className="rounded-md px-4 py-2 transition hover:bg-accent-soft hover:text-accent">Shop all</Link>
+          <Link href="/#trending" className="rounded-md px-4 py-2 transition hover:bg-accent-soft hover:text-accent">New arrivals</Link>
+          <Link href="/#products" className="rounded-md px-4 py-2 transition hover:bg-accent-soft hover:text-accent">Best sellers</Link>
+          <Link href="/#festival-products" className="rounded-md px-4 py-2 transition hover:bg-accent-soft hover:text-accent">Festival store</Link>
+          <Link href="/track-order" className="rounded-md px-4 py-2 transition hover:bg-accent-soft hover:text-accent">Order help</Link>
+          <a
+            href={`https://wa.me/${WHATSAPP_NUMBER}`}
+            className="inline-flex items-center gap-1.5 rounded-md px-4 py-2 transition hover:bg-accent-soft hover:text-accent"
+          >
+            <MessageCircle className="h-3.5 w-3.5" />
+            Chat
+          </a>
+        </div>
+      </div>
+
       {drawerOpen && (
         <>
           <div
@@ -153,7 +153,7 @@ export default function Header() {
             aria-modal="true"
           >
             <div className="flex items-center justify-between border-b border-border px-4 py-3">
-              <Link href="/" className="inline-flex h-12 w-[220px] items-center justify-center overflow-hidden rounded-lg bg-white px-1.5 py-1">
+              <Link href="/" className="inline-flex h-11 w-[190px] items-center justify-start overflow-hidden">
                 <Image
                   src="/glownari-header-logo.png"
                   alt="Glownari"
@@ -233,13 +233,5 @@ export default function Header() {
         </>
       )}
     </header>
-  );
-}
-
-function MenuIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
-      <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-    </svg>
   );
 }

@@ -37,8 +37,8 @@ export default function AccountHeaderButton({ mobile = false }: { mobile?: boole
       <Link
         href="/login"
         className={mobile
-          ? 'grid h-10 w-10 place-items-center rounded-md border border-white/20 bg-white/10 text-white'
-          : 'inline-flex h-10 items-center gap-1.5 rounded-md px-2 font-bold text-white/90 hover:bg-white/10 hover:text-white'}
+          ? 'grid h-10 w-10 place-items-center rounded-md border border-border bg-bg-elev-2 text-text'
+          : 'inline-flex h-10 items-center gap-1.5 rounded-md px-2 font-semibold text-text-muted hover:bg-bg-glass hover:text-text'}
         aria-label="Login"
       >
         <UserRound className="h-4 w-4" />
@@ -51,7 +51,7 @@ export default function AccountHeaderButton({ mobile = false }: { mobile?: boole
     return (
       <Link
         href="/profile"
-        className="grid h-10 w-10 place-items-center rounded-full border border-white/25 bg-white text-sm font-black text-accent shadow-sm"
+        className="grid h-10 w-10 place-items-center rounded-full border border-border bg-bg-elev-2 text-sm font-black text-accent"
         aria-label="Profile"
       >
         {initialsFor(user)}
@@ -62,11 +62,11 @@ export default function AccountHeaderButton({ mobile = false }: { mobile?: boole
   return (
     <Link
       href="/profile"
-      className="grid h-10 w-10 place-items-center rounded-md border border-white/15 bg-white/10 transition hover:border-white/35 hover:bg-white/18"
+      className="grid h-10 w-10 place-items-center rounded-md transition hover:bg-bg-glass"
       title="Profile"
       aria-label="Profile"
     >
-      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-white text-xs font-black text-accent shadow-sm">
+      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-accent-soft text-xs font-black text-accent">
         {initialsFor(user)}
       </span>
     </Link>

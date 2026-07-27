@@ -4,9 +4,10 @@ import type { Config } from 'tailwindcss';
  * All colors read from CSS variables defined in src/app/globals.css.
  * Swap palette → change variables only, never this file.
  *
- * Current palette: modern marketplace blue with light/dark theme variables.
+ * Current palette: premium berry, warm ivory, and deep teal with light/dark variables.
  */
 const config: Config = {
+  darkMode: 'class',
   future: {
     hoverOnlyWhenSupported: true,
   },

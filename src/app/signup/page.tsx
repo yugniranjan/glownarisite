@@ -38,7 +38,7 @@ function SignupInner() {
   }
 
   return (
-    <div className="mx-auto grid min-h-[calc(100vh-160px)] max-w-page place-items-center px-3 py-8 sm:px-4">
+    <div className="site-container grid min-h-[calc(100vh-160px)] place-items-center py-10 sm:py-12">
       <div className="w-full max-w-md overflow-hidden rounded-xl border border-border bg-bg-elev-2 shadow-card">
         <div className="bg-[linear-gradient(135deg,var(--accent-strong),var(--accent))] px-5 py-6 text-white">
           <div className="grid h-11 w-11 place-items-center rounded-lg bg-white/15">

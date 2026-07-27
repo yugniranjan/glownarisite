@@ -30,14 +30,14 @@ export default function CartHeaderLink({ mobile = false }: { mobile?: boolean })
     <Link
       href="/cart"
       className={mobile
-        ? 'relative grid h-10 w-10 place-items-center rounded-md border border-white/20 bg-white/10 text-white'
-        : 'relative grid h-10 w-10 place-items-center rounded-md border border-white/15 bg-white/10 text-white transition hover:border-white/35 hover:bg-white/18'}
+        ? 'relative grid h-10 w-10 place-items-center rounded-md border border-border bg-bg-elev-2 text-text'
+        : 'relative grid h-10 w-10 place-items-center rounded-md text-text-muted transition hover:bg-bg-glass hover:text-accent'}
       aria-label={`Cart with ${count} items`}
       title={`Cart with ${count} items`}
     >
       <ShoppingCart className="h-5 w-5" />
       {count > 0 && (
-        <span className="absolute -right-1.5 -top-1.5 grid min-w-5 place-items-center rounded-full bg-white px-1 text-[10px] font-black leading-5 text-accent ring-2 ring-accent">
+        <span className="absolute -right-1 -top-1 grid min-w-5 place-items-center rounded-full bg-accent px-1 text-[10px] font-black leading-5 text-white ring-2 ring-bg-elev-1">
           {count > 99 ? '99+' : count}
         </span>
       )}

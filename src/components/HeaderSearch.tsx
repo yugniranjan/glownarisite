@@ -50,9 +50,9 @@ export default function HeaderSearch({ mobile = false, autoFocus = false }: { mo
   }
 
   return (
-    <div ref={rootRef} className={`relative ${mobile ? 'w-full' : 'hidden min-w-[260px] max-w-[560px] flex-1 lg:block'}`}>
-      <div className="flex h-12 items-center gap-2 rounded-2xl border border-white/25 bg-white px-3 text-slate-900 shadow-[0_12px_34px_rgba(15,23,42,0.16)] transition focus-within:bg-white focus-within:ring-4 focus-within:ring-white/25">
-        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-accent-soft text-accent">
+    <div ref={rootRef} className={`relative ${mobile ? 'w-full' : 'hidden min-w-[260px] max-w-[590px] flex-1 lg:block'}`}>
+      <div className="flex h-11 items-center gap-2 rounded-md border border-border-strong bg-bg-elev-2 px-2.5 text-text transition focus-within:border-accent focus-within:ring-2 focus-within:ring-accent-soft">
+        <span className="grid h-8 w-8 shrink-0 place-items-center rounded bg-accent-soft text-accent">
           <Search className="h-5 w-5" aria-hidden />
         </span>
         <input
@@ -71,21 +71,21 @@ export default function HeaderSearch({ mobile = false, autoFocus = false }: { mo
             if (event.key === 'Escape') setOpen(false);
           }}
           placeholder="Search products, categories..."
-          className="h-full min-w-0 flex-1 border-0 bg-transparent text-[15px] font-semibold text-slate-900 outline-none ring-0 placeholder:text-slate-400 focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0"
+          className="h-full min-w-0 flex-1 border-0 bg-transparent text-sm font-medium text-text outline-none ring-0 placeholder:text-text-dim focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0"
         />
         {loading && <Loader2 className="h-4 w-4 shrink-0 animate-spin text-accent" />}
         {query && (
-          <button type="button" onClick={() => setQuery('')} className="grid h-8 w-8 place-items-center rounded-xl text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label="Clear search">
+          <button type="button" onClick={() => setQuery('')} className="grid h-8 w-8 place-items-center rounded text-text-dim hover:bg-bg-glass hover:text-text" aria-label="Clear search">
             <X className="h-4 w-4" />
           </button>
         )}
-        <button type="button" onClick={submit} className="hidden h-9 rounded-xl bg-accent px-4 text-sm font-black text-white shadow-sm hover:bg-accent-strong sm:inline-flex sm:items-center">
+        <button type="button" onClick={submit} className="hidden h-8 rounded bg-accent px-4 text-xs font-bold text-white hover:bg-accent-strong sm:inline-flex sm:items-center">
           Search
         </button>
       </div>
 
       {open && (
-        <div className="absolute left-0 right-0 top-full z-50 mt-3 overflow-hidden rounded-3xl border border-border bg-bg-elev-2 text-text shadow-[0_28px_80px_rgba(15,23,42,0.32)]">
+        <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-lg border border-border bg-bg-elev-2 text-text shadow-hover">
           <div className="flex items-center justify-between gap-3 border-b border-border bg-bg-elev-1 px-4 py-3">
             <div className="flex min-w-0 items-center gap-2">
               {trimmed ? <Search className="h-4 w-4 shrink-0 text-accent" /> : <TrendingUp className="h-4 w-4 shrink-0 text-accent" />}

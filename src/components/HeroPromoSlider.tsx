@@ -8,15 +8,6 @@ import type { GlownariBanner } from '@/lib/api';
 
 type Banner = GlownariBanner;
 
-const THEME_BG: Record<GlownariBanner['theme'], string> = {
-  pink: 'from-[#24121d] via-[#6d2045] to-[#111114]',
-  charcoal: 'from-[#15151a] via-[#2b2b33] to-[#08080a]',
-  gold: 'from-[#1f1710] via-[#7a4f18] to-[#111114]',
-  green: 'from-[#0f1d18] via-[#1d5947] to-[#111114]',
-  blue: 'from-[#101827] via-[#1d3f73] to-[#111114]',
-  purple: 'from-[#181227] via-[#4c2f86] to-[#111114]',
-};
-
 function wrap(index: number, total: number) {
   return (index + total) % total;
 }
@@ -40,10 +31,10 @@ export default function HeroPromoSlider({ banners }: { banners: Banner[] }) {
   if (total === 0) return null;
 
   return (
-    <section className="overflow-hidden bg-bg-elev-1 py-4 sm:py-5">
-      <div className="relative mx-auto max-w-page px-3 sm:px-4">
+    <section className="overflow-hidden bg-bg-elev-1 py-3 sm:py-4">
+      <div className="site-container relative">
         <div
-          className="relative h-[190px] overflow-hidden rounded-xl sm:h-[230px] lg:h-[240px]"
+          className="relative h-[180px] overflow-hidden rounded-lg sm:h-[215px] lg:h-[228px]"
           style={{ '--slide-offset': 'min(88vw, 784px)' } as CSSProperties & Record<string, string>}
         >
           {banners.map((banner, index) => {
@@ -56,7 +47,7 @@ export default function HeroPromoSlider({ banners }: { banners: Banner[] }) {
                 href={banner.href}
                 aria-hidden={!isVisible}
                 tabIndex={isVisible ? 0 : -1}
-                className={`absolute left-1/2 top-0 h-full w-[88vw] max-w-[780px] overflow-hidden rounded-xl bg-gradient-to-br ${THEME_BG[banner.theme] || THEME_BG.pink} shadow-card transition-all duration-500 ease-out sm:w-[74vw] lg:w-[760px] ${
+                className={`absolute left-1/2 top-0 h-full w-[88vw] max-w-[780px] overflow-hidden rounded-lg border border-border bg-[#171519] shadow-card transition-all duration-500 ease-out sm:w-[74vw] lg:w-[760px] ${
                   isActive ? 'z-20 opacity-100' : isVisible ? 'z-10 opacity-95' : 'z-0 opacity-0'
                 }`}
                 style={{
@@ -64,25 +55,23 @@ export default function HeroPromoSlider({ banners }: { banners: Banner[] }) {
                   pointerEvents: isVisible ? 'auto' : 'none',
                 }}
               >
-                <div className="relative z-10 flex h-full w-[60%] flex-col justify-center p-5 text-white sm:p-7">
+                <img src={banner.image} alt="" className="absolute inset-0 h-full w-full object-cover" />
+                <div className="absolute inset-y-0 left-0 w-[66%] bg-black/65 sm:w-[60%]" />
+                <div className="relative z-10 flex h-full w-[68%] flex-col justify-center p-5 text-white sm:w-[62%] sm:p-7">
                   {banner.brand && <div className="text-sm font-black uppercase tracking-wide text-white/90">{banner.brand}</div>}
-                  {banner.eyebrow && <div className="mt-5 text-xs font-bold text-white/70 sm:text-sm">{banner.eyebrow}</div>}
-                  <h2 className="mt-1 max-w-[13ch] text-2xl font-black leading-tight sm:text-4xl">
+                  {banner.eyebrow && <div className="mt-2 text-xs font-bold text-white/75 sm:text-sm">{banner.eyebrow}</div>}
+                  <h2 className="font-display mt-1 max-w-[15ch] text-2xl leading-tight sm:text-4xl">
                     {banner.title}
                   </h2>
-                  {banner.priceLabel && <div className="mt-1 text-xl font-black sm:text-3xl">{banner.priceLabel}</div>}
+                  {banner.priceLabel && <div className="mt-1 text-xl font-black text-white sm:text-2xl">{banner.priceLabel}</div>}
                   {banner.subtitle && (
-                    <p className="mt-2 max-w-md text-sm font-medium leading-5 text-white/75 sm:text-base">
+                    <p className="mt-1.5 line-clamp-2 max-w-md text-xs font-medium leading-5 text-white/75 sm:text-sm">
                       {banner.subtitle}
                     </p>
                   )}
-                  <span className="mt-5 inline-flex w-fit rounded bg-white px-3 py-2 text-xs font-black text-slate-900">
+                  <span className="mt-3 inline-flex w-fit rounded bg-white px-3 py-2 text-xs font-black text-slate-900">
                     Shop now
                   </span>
-                </div>
-                <div className="absolute inset-y-0 right-0 w-[52%]">
-                  <img src={banner.image} alt="" className="h-full w-full object-cover" />
-                  <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/15 to-transparent" />
                 </div>
                 <span className="absolute bottom-3 right-3 rounded bg-black/40 px-2 py-0.5 text-[10px] font-bold text-white/80">
                   AD
@@ -98,7 +87,7 @@ export default function HeroPromoSlider({ banners }: { banners: Banner[] }) {
               type="button"
               aria-label="Previous banner"
               onClick={() => go(-1)}
-              className="absolute left-3 top-[calc(50%-10px)] z-30 grid h-12 w-9 -translate-y-1/2 place-items-center rounded-r bg-white/95 text-slate-700 shadow-card hover:text-accent sm:left-4"
+              className="absolute left-3 top-[calc(50%-10px)] z-30 grid h-11 w-9 -translate-y-1/2 place-items-center rounded-r bg-white/95 text-slate-700 shadow-card hover:text-accent sm:left-4"
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
@@ -106,7 +95,7 @@ export default function HeroPromoSlider({ banners }: { banners: Banner[] }) {
               type="button"
               aria-label="Next banner"
               onClick={() => go(1)}
-              className="absolute right-3 top-[calc(50%-10px)] z-30 grid h-12 w-9 -translate-y-1/2 place-items-center rounded-l bg-white/95 text-slate-700 shadow-card hover:text-accent sm:right-4"
+              className="absolute right-3 top-[calc(50%-10px)] z-30 grid h-11 w-9 -translate-y-1/2 place-items-center rounded-l bg-white/95 text-slate-700 shadow-card hover:text-accent sm:right-4"
             >
               <ChevronRight className="h-5 w-5" />
             </button>

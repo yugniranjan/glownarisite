@@ -94,7 +94,7 @@ export default function TrackOrderPage() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl px-3 py-6 sm:px-4 sm:py-12">
+    <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6 sm:py-12">
       <div className="text-center">
         <Package className="mx-auto h-10 w-10 text-accent sm:h-12 sm:w-12" />
         <h1 className="mt-3 text-2xl font-bold sm:text-3xl">Track your order</h1>

@@ -7,30 +7,30 @@
    checkout, and product pages. */
 
 :root {
-  --bg:            #f7f7f8;
+  --bg:            #faf8f8;
   --bg-elev-1:    #ffffff;
   --bg-elev-2:    #ffffff;
-  --bg-elev-3:    #f4f4f6;
-  --bg-glass:     rgba(15, 23, 42, 0.05);
-  --bg-glass-strong: rgba(15, 23, 42, 0.10);
+  --bg-elev-3:    #f5f0f2;
+  --bg-glass:     rgba(43, 30, 36, 0.045);
+  --bg-glass-strong: rgba(43, 30, 36, 0.09);
 
-  --border:        rgba(15, 23, 42, 0.10);
-  --border-strong: rgba(15, 23, 42, 0.18);
+  --border:        rgba(57, 37, 46, 0.11);
+  --border-strong: rgba(57, 37, 46, 0.20);
 
-  --text:        #1f1f24;
-  --text-muted:  #66616a;
-  --text-dim:    #9a929c;
+  --text:        #241c20;
+  --text-muted:  #6d6066;
+  --text-dim:    #998b91;
 
-  --accent:           #fc2779;
-  --accent-strong:    #d4145f;
-  --accent-soft:      rgba(252, 39, 121, 0.10);
-  --accent-glow:      rgba(252, 39, 121, 0.18);
+  --accent:           #b62e59;
+  --accent-strong:    #8f2044;
+  --accent-soft:      rgba(182, 46, 89, 0.10);
+  --accent-glow:      rgba(182, 46, 89, 0.18);
 
-  --success:          #0f7f72;
-  --success-soft:     rgba(15, 127, 114, 0.12);
+  --success:          #1b7462;
+  --success-soft:     rgba(27, 116, 98, 0.11);
 
-  --info:             #5b4b8a;
-  --info-soft:        rgba(91, 75, 138, 0.12);
+  --info:             #67527a;
+  --info-soft:        rgba(103, 82, 122, 0.12);
 
   --danger:           #dc2626;
   --danger-soft:      rgba(220, 38, 38, 0.12);
@@ -40,78 +40,85 @@
 
   /* System stack keeps production builds independent from remote font fetches. */
   --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-display: Georgia, "Times New Roman", serif;
 
   /* Layout */
   --max-w: 1280px;
-  --header-h: 64px;
+  --header-h: 108px;
+  --page-gutter: 1rem;
+  --page-gutter-wide: 1.5rem;
+  --page-space: 2rem;
+  --page-space-wide: 3rem;
+  --section-space: 2rem;
+  --section-space-wide: 2.5rem;
 
-  --shadow-card:  0 1px 2px rgba(31, 31, 36, 0.06), 0 12px 34px rgba(31, 31, 36, 0.08);
-  --shadow-hover: 0 22px 54px rgba(31, 31, 36, 0.14);
-  --shadow-cta:   0 8px 20px rgba(252, 39, 121, 0.24);
+  --shadow-card:  0 1px 2px rgba(44, 27, 35, 0.04), 0 8px 24px rgba(44, 27, 35, 0.055);
+  --shadow-hover: 0 16px 38px rgba(44, 27, 35, 0.11);
+  --shadow-cta:   0 8px 20px rgba(143, 32, 68, 0.20);
 }
 
 :root.light {
-  --bg:            #f7f7f8;
+  --bg:            #faf8f8;
   --bg-elev-1:    #ffffff;
   --bg-elev-2:    #ffffff;
-  --bg-elev-3:    #f4f4f6;
-  --bg-glass:     rgba(15, 23, 42, 0.05);
-  --bg-glass-strong: rgba(15, 23, 42, 0.10);
+  --bg-elev-3:    #f5f0f2;
+  --bg-glass:     rgba(43, 30, 36, 0.045);
+  --bg-glass-strong: rgba(43, 30, 36, 0.09);
 
-  --border:        rgba(15, 23, 42, 0.12);
-  --border-strong: rgba(15, 23, 42, 0.22);
+  --border:        rgba(57, 37, 46, 0.11);
+  --border-strong: rgba(57, 37, 46, 0.20);
 
-  --text:        #1f1f24;
-  --text-muted:  #66616a;
-  --text-dim:    #9a929c;
+  --text:        #241c20;
+  --text-muted:  #6d6066;
+  --text-dim:    #998b91;
 
-  --accent:           #fc2779;
-  --accent-strong:    #d4145f;
-  --accent-soft:      rgba(252, 39, 121, 0.10);
-  --accent-glow:      rgba(252, 39, 121, 0.18);
+  --accent:           #b62e59;
+  --accent-strong:    #8f2044;
+  --accent-soft:      rgba(182, 46, 89, 0.10);
+  --accent-glow:      rgba(182, 46, 89, 0.18);
 
-  --success:          #0f7f72;
-  --success-soft:     rgba(15, 127, 114, 0.12);
-  --info:             #5b4b8a;
-  --info-soft:        rgba(91, 75, 138, 0.12);
-  --danger:           #d4145f;
-  --danger-soft:      rgba(212, 20, 95, 0.12);
+  --success:          #1b7462;
+  --success-soft:     rgba(27, 116, 98, 0.11);
+  --info:             #67527a;
+  --info-soft:        rgba(103, 82, 122, 0.12);
+  --danger:           #b4234f;
+  --danger-soft:      rgba(180, 35, 79, 0.12);
 
-  --shadow-card:  0 1px 2px rgba(31, 31, 36, 0.06), 0 12px 34px rgba(31, 31, 36, 0.08);
-  --shadow-hover: 0 22px 54px rgba(31, 31, 36, 0.14);
-  --shadow-cta:   0 8px 20px rgba(252, 39, 121, 0.24);
+  --shadow-card:  0 1px 2px rgba(44, 27, 35, 0.04), 0 8px 24px rgba(44, 27, 35, 0.055);
+  --shadow-hover: 0 16px 38px rgba(44, 27, 35, 0.11);
+  --shadow-cta:   0 8px 20px rgba(143, 32, 68, 0.20);
 }
 
 :root.dark {
-  --bg:            #111114;
-  --bg-elev-1:    #18181c;
-  --bg-elev-2:    #202026;
-  --bg-elev-3:    #292932;
+  --bg:            #121012;
+  --bg-elev-1:    #191619;
+  --bg-elev-2:    #211c20;
+  --bg-elev-3:    #2b2429;
   --bg-glass:     rgba(255, 255, 255, 0.06);
   --bg-glass-strong: rgba(255, 255, 255, 0.12);
 
   --border:        rgba(255, 255, 255, 0.10);
   --border-strong: rgba(255, 255, 255, 0.18);
 
-  --text:        #f8fafc;
-  --text-muted:  #d4cbd2;
-  --text-dim:    #aaa0a8;
+  --text:        #f8f3f5;
+  --text-muted:  #d4c8cd;
+  --text-dim:    #aa9aa1;
 
-  --accent:           #ff6fa8;
-  --accent-strong:    #fc2779;
-  --accent-soft:      rgba(255, 111, 168, 0.16);
-  --accent-glow:      rgba(255, 111, 168, 0.28);
+  --accent:           #e382a4;
+  --accent-strong:    #f09bbb;
+  --accent-soft:      rgba(227, 130, 164, 0.15);
+  --accent-glow:      rgba(227, 130, 164, 0.24);
 
-  --success:          #5eead4;
-  --success-soft:     rgba(94, 234, 212, 0.14);
-  --info:             #c4b5fd;
-  --info-soft:        rgba(196, 181, 253, 0.14);
-  --danger:           #ff6fa8;
-  --danger-soft:      rgba(255, 111, 168, 0.14);
+  --success:          #79cbbb;
+  --success-soft:     rgba(121, 203, 187, 0.14);
+  --info:             #c6aed3;
+  --info-soft:        rgba(198, 174, 211, 0.14);
+  --danger:           #ef8baa;
+  --danger-soft:      rgba(239, 139, 170, 0.14);
 
   --shadow-card:  0 8px 26px rgba(0, 0, 0, 0.28);
   --shadow-hover: 0 20px 48px rgba(0, 0, 0, 0.36);
-  --shadow-cta:   0 8px 22px rgba(255, 111, 168, 0.24);
+  --shadow-cta:   0 8px 22px rgba(227, 130, 164, 0.22);
 }
 
 @media (max-width: 1023px) {
@@ -147,6 +154,59 @@ body {
   font-feature-settings: 'cv11', 'ss01';
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+}
+
+.site-container {
+  width: 100%;
+  max-width: var(--max-w);
+  margin-inline: auto;
+  padding-inline: var(--page-gutter);
+}
+
+.page-content {
+  padding-block: var(--page-space);
+}
+
+.section-content {
+  padding-block: var(--section-space);
+}
+
+@media (min-width: 640px) {
+  .site-container {
+    padding-inline: var(--page-gutter-wide);
+  }
+
+  .page-content {
+    padding-block: var(--page-space-wide);
+  }
+
+  .section-content {
+    padding-block: var(--section-space-wide);
+  }
+}
+
+.font-display {
+  font-family: var(--font-display);
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+.hero-copy-surface {
+  background: rgba(253, 250, 251, 0.90);
+}
+
+.dark .hero-copy-surface {
+  background: rgba(21, 19, 22, 0.90);
+}
+
+@media (min-width: 640px) {
+  .hero-copy-surface {
+    background: rgba(253, 250, 251, 0.96);
+  }
+
+  .dark .hero-copy-surface {
+    background: rgba(21, 19, 22, 0.95);
+  }
 }
 
 [id] {
@@ -229,12 +289,12 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .surface {
   background: var(--bg-elev-2);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 8px;
 }
 .surface-elev {
   background: var(--bg-elev-3);
   border: 1px solid var(--border-strong);
-  border-radius: 10px;
+  border-radius: 8px;
 }
 
 .poster-card,
@@ -258,25 +318,19 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 }
 
 .bg-marketplace-hero {
-  background:
-    radial-gradient(circle at 18% 0%, rgba(225, 29, 72, 0.12), transparent 22rem),
-    radial-gradient(circle at 86% 8%, rgba(15, 118, 110, 0.10), transparent 20rem),
-    linear-gradient(180deg, var(--bg-elev-1), var(--bg));
+  background: var(--bg);
 }
 
 :root.dark .bg-marketplace-hero {
-  background:
-    radial-gradient(circle at 18% 0%, rgba(251, 113, 133, 0.16), transparent 22rem),
-    radial-gradient(circle at 86% 8%, rgba(94, 234, 212, 0.10), transparent 20rem),
-    linear-gradient(180deg, #18101d, var(--bg));
+  background: var(--bg);
 }
 
 .bg-marketplace-chip {
-  background: linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0.5));
+  background: var(--accent-soft);
 }
 
 :root.dark .bg-marketplace-chip {
-  background: linear-gradient(135deg, var(--accent-soft), rgba(255,255,255,0.06));
+  background: var(--accent-soft);
 }
 
 /* Touch devices should never get sticky hover states. Desktop hover remains
@@ -381,10 +435,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   inset: 0;
   z-index: 0;
   background:
-    radial-gradient(ellipse 80% 60% at 20% 35%, rgba(229, 9, 20, 0.35) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 50% at 80% 70%, rgba(124, 29, 29, 0.45) 0%, transparent 55%),
-    radial-gradient(ellipse 50% 40% at 50% 0%, rgba(88, 28, 135, 0.35) 0%, transparent 50%),
-    linear-gradient(160deg, #1a0a0a 0%, #0a0a0a 45%, #000000 100%);
+    radial-gradient(ellipse 80% 60% at 20% 35%, rgba(182, 46, 89, 0.34) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 80% 70%, rgba(91, 47, 67, 0.46) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 40% at 50% 0%, rgba(103, 82, 122, 0.32) 0%, transparent 50%),
+    linear-gradient(160deg, #201118 0%, #110d10 45%, #090708 100%);
 }
 .hero-bg-photo {
   position: absolute;
@@ -410,5 +464,5 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: radial-gradient(circle at 25% 75%, rgba(229, 9, 20, 0.18) 0%, transparent 42%);
+  background: radial-gradient(circle at 25% 75%, rgba(182, 46, 89, 0.17) 0%, transparent 42%);
 }

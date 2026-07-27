@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import { ArrowLeft, Star } from 'lucide-react';
 import ProductCard from '@/components/ProductCard';
 import CategoryBadge from '@/components/CategoryBadge';
-import { getCategories, getProducts } from '@/lib/api';
+import { getCategories, getProducts, getSocialProof } from '@/lib/api';
 
 type CategoryPageProps = { params: Promise<{ slug: string }> };
 
@@ -23,9 +23,10 @@ const HUES = ['#7c1d1d', '#1e3a8a', '#0f3b3b', '#581c87', '#7c2d12', '#831843'];
 
 export default async function CategoryPage({ params }: CategoryPageProps) {
   const { slug } = await params;
-  const [categories, products] = await Promise.all([
+  const [categories, products, proof] = await Promise.all([
     getCategories(),
     getProducts({ categorySlug: slug, take: 36 }),
+    getSocialProof(),
   ]);
   const category = categories.find((c) => c.slug === slug);
   if (!category) notFound();
@@ -37,15 +38,10 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
     <>
       {/* ─────── Hero ─────── */}
       <section
-        className="relative px-3 pb-8 pt-6 sm:px-4 sm:pb-12 sm:pt-10"
+        className="relative py-8 sm:py-12"
         style={{ background: `linear-gradient(135deg, ${hue}99, transparent 60%), var(--bg-elev-1)` }}
       >
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full opacity-40 blur-3xl"
-          style={{ background: hue }}
-        />
-        <div className="mx-auto max-w-page">
+        <div className="site-container">
           <Link
             href="/"
             className="inline-flex items-center gap-1.5 text-xs font-semibold text-text-muted hover:text-text sm:text-sm"
@@ -81,8 +77,8 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
 
       {/* ─────── Filter chips (horizontal scroll on mobile, wrap on desktop) ─────── */}
       <section className="border-y border-border bg-bg sticky top-16 z-20">
-        <div className="mx-auto max-w-page">
-          <div className="no-scrollbar flex snap-x snap-mandatory gap-2 overflow-x-auto px-3 py-3 sm:flex-wrap sm:overflow-visible sm:px-4">
+        <div className="site-container">
+          <div className="no-scrollbar flex snap-x snap-mandatory gap-2 overflow-x-auto py-3.5 sm:flex-wrap sm:overflow-visible">
             <Chip href="/" active={false}>All</Chip>
             {categories.map((c) => (
               <Chip key={c.id} href={`/category/${c.slug}`} active={c.id === category.id}>
@@ -94,7 +90,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
       </section>
 
       {/* ─────── Products grid ─────── */}
-      <section className="mx-auto max-w-page px-3 py-6 sm:px-4 sm:py-10">
+      <section className="site-container page-content">
         {products.items.length === 0 ? (
           <div className="rounded-xl border border-border bg-bg-elev-2 p-10 text-center text-text-muted">
             No products in this category yet. Try a different category from above.
@@ -102,7 +98,12 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
         ) : (
           <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             {products.items.map((p) => (
-              <ProductCard key={p.id} product={p} />
+              <ProductCard
+                key={p.id}
+                product={p}
+                rating={proof.rating}
+                reviewCount={proof.reviews}
+              />
             ))}
           </div>
         )}

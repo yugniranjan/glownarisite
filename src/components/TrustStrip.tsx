@@ -11,8 +11,8 @@ const ITEMS = [
 export default function TrustStrip() {
   return (
     <section className="border-y border-border bg-bg-elev-1">
-      <div className="mx-auto max-w-page">
-        <ul className="no-scrollbar flex snap-x snap-mandatory gap-3 overflow-x-auto px-3 py-4 sm:gap-4 sm:px-4 md:grid md:grid-cols-4 md:overflow-visible md:py-6">
+      <div className="site-container">
+        <ul className="no-scrollbar flex snap-x snap-mandatory gap-3 overflow-x-auto py-5 sm:gap-4 md:grid md:grid-cols-4 md:overflow-visible md:py-6">
           {ITEMS.map(({ icon: Icon, label, sub }) => (
             <li
               key={label}

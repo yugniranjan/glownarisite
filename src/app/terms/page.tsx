@@ -33,11 +33,11 @@ const SECTIONS: { id: string; heading: string; intro?: string; points: string[] 
 
 export default function TermsPage() {
   return (
-    <div className="mx-auto max-w-3xl px-3 py-8 sm:px-4 sm:py-12">
+    <div className="mx-auto max-w-3xl px-4 py-9 sm:px-6 sm:py-12">
       <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Terms &amp; Conditions</h1>
       <p className="mt-2 text-sm text-text-muted">Last updated 23 May 2026</p>
 
-      <div className="mt-6 space-y-5 sm:mt-8 sm:space-y-6">
+      <div className="mt-7 space-y-6 sm:mt-9">
         {SECTIONS.map((s) => (
           <section
             key={s.id}

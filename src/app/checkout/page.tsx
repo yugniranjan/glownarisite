@@ -20,6 +20,7 @@ import { AUTH_REQUIRED, cartSubtotal, clearCart, fetchCart, removeFromCart, type
 import { getAuthToken, getStoredUser } from '@/lib/auth';
 import PageLoader from '@/components/PageLoader';
 import ModernSelect from '@/components/ModernSelect';
+import AccountGate from '@/components/AccountGate';
 
 const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '918506965129';
 
@@ -339,7 +340,7 @@ function CheckoutInner() {
           contact: result.normalized.phone.replace(/^\+91/, ''),
         },
         notes: { orderNumber: created.orderNumber },
-        theme: { color: '#e50914' },
+        theme: { color: '#b62e59' },
         handler: async (response: any) => {
           try {
             const verified = await verifyRazorpayPayment({
@@ -387,37 +388,34 @@ function CheckoutInner() {
   if (authRequired) {
     const next = `/checkout?${params.toString()}`;
     return (
-      <div className="mx-auto max-w-md px-4 py-16 text-center">
-        <h1 className="text-2xl font-semibold">Login to checkout</h1>
-        <p className="mt-3 text-text-muted">
-          Checkout is available only after login so cart, address, and order details are saved to your account.
-        </p>
-        <div className="mt-6 flex flex-wrap justify-center gap-3">
-          <Link href={`/login?next=${encodeURIComponent(next)}`} className="btn-accent inline-flex">
-            Login
-          </Link>
-          <Link href={`/signup?next=${encodeURIComponent(next)}`} className="btn-ghost inline-flex">
-            Create account
-          </Link>
-        </div>
-      </div>
+      <AccountGate
+        icon={ShieldCheck}
+        eyebrow="Secure checkout"
+        title="Sign in for a smoother checkout"
+        description="Your saved address, bag and payment-linked order details stay together in one secure account."
+        benefits={['Use saved delivery addresses', 'Pay once for all selected items', 'Track your order after payment']}
+        loginHref={`/login?next=${encodeURIComponent(next)}`}
+        signupHref={`/signup?next=${encodeURIComponent(next)}`}
+      />
     );
   }
 
   if ((!cartMode && (!slug || !product)) || (cartMode && cartItems.length === 0)) {
     return (
-      <div className="mx-auto max-w-md px-4 py-16 text-center">
-        <h1 className="text-2xl font-semibold">
+      <div className="site-container page-content">
+        <section className="border-y border-border bg-bg-elev-1 px-5 py-10 text-center sm:py-14">
+        <h1 className="text-2xl font-black">
           {cartMode && error ? 'Login to checkout cart' : cartMode ? 'Your cart is empty' : 'Pick a product first'}
         </h1>
-        <p className="mt-3 text-text-muted">
+        <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-text-muted">
           {error || 'Head back to the store and choose items to start checkout.'}
         </p>
         {cartMode && error ? (
           <Link href={`/login?next=${encodeURIComponent('/cart')}`} className="btn-accent mt-6 inline-flex">Login to cart</Link>
         ) : (
-          <Link href="/" className="btn-accent mt-6 inline-flex">Browse products</Link>
+          <Link href="/#products" className="btn-accent mt-6 inline-flex">Browse products</Link>
         )}
+        </section>
       </div>
     );
   }
@@ -458,20 +456,20 @@ function CheckoutInner() {
   const currency = cartMode ? (cartItems[0]?.currency || 'INR') : product!.currency;
 
   return (
-    <div className="mx-auto max-w-page px-3 pb-24 pt-4 sm:px-4 sm:pb-12 sm:pt-6">
+    <div className="site-container pb-24 pt-7 sm:pb-12 sm:pt-9">
       <Link href={cartMode ? '/cart' : `/products/${product!.slug}`} className="inline-flex items-center gap-1.5 text-xs font-semibold text-text-muted hover:text-text sm:text-sm">
         <ArrowLeft className="h-4 w-4" />
         {cartMode ? 'Back to cart' : 'Back to product'}
       </Link>
 
-      <h1 className="mt-3 text-2xl font-black sm:text-3xl">Complete your order</h1>
+      <h1 className="mt-3 text-2xl font-black sm:text-3xl">Checkout</h1>
       <p className="mt-1 text-sm text-text-muted">
         {cartMode
-          ? 'Your cart is loaded from your account. Add delivery address, review your cart, and pay securely with Razorpay.'
-          : 'Add delivery address, review your product, and pay securely with Razorpay.'}
+          ? 'Confirm your delivery details, review the bag, and pay once for everything.'
+          : 'Confirm your delivery details, review your product, and pay securely.'}
       </p>
 
-      <div className="mt-6 grid gap-5 lg:grid-cols-[minmax(0,1fr)_400px]">
+      <div className="mt-7 grid gap-6 lg:grid-cols-[minmax(0,1fr)_400px]">
         <form onSubmit={submit} noValidate className="space-y-4">
           <div className="hidden" aria-hidden="true">
             <label>Website<input tabIndex={-1} autoComplete="off" value={botTrap} onChange={(e) => setBotTrap(e.target.value)} /></label>
@@ -484,7 +482,7 @@ function CheckoutInner() {
             </div>
           )}
 
-          <section className="overflow-hidden rounded-2xl border border-border bg-bg-elev-2 shadow-card">
+          <section className="overflow-hidden rounded-lg border border-border bg-bg-elev-2 shadow-card">
             <div className="border-b border-border bg-bg-elev-1 px-4 py-3 sm:px-5">
             <div className="mb-4 flex items-center gap-3">
               <span className="grid h-9 w-9 place-items-center rounded-lg bg-accent-soft text-accent"><UserRound className="h-4 w-4" /></span>
@@ -523,7 +521,7 @@ function CheckoutInner() {
             </div>
           </section>
 
-          <section className="overflow-visible rounded-2xl border border-border bg-bg-elev-2 shadow-card">
+          <section className="overflow-visible rounded-lg border border-border bg-bg-elev-2 shadow-card">
             <div className="border-b border-border bg-bg-elev-1 px-4 py-3 sm:px-5">
             <div className="flex items-center gap-3">
               <span className="grid h-9 w-9 place-items-center rounded-lg bg-accent-soft text-accent"><MapPin className="h-4 w-4" /></span>
@@ -552,7 +550,7 @@ function CheckoutInner() {
               </Field>
             )}
             {savedAddresses.length === 0 && (
-              <div className="sm:col-span-2 rounded-xl border border-dashed border-border bg-bg-elev-1 p-4">
+              <div className="sm:col-span-2 rounded-lg border border-dashed border-border bg-bg-elev-1 p-4">
                 <div className="font-bold">No saved address</div>
                 <p className="mt-1 text-sm text-text-muted">Add an address in profile before checkout.</p>
                 <Link href={`/profile?next=${encodeURIComponent(`/checkout?${params.toString()}`)}`} className="btn-accent mt-3 inline-flex h-10 px-4">
@@ -578,7 +576,7 @@ function CheckoutInner() {
             </div>
           </section>
 
-          <section className="overflow-hidden rounded-2xl border border-border bg-bg-elev-2 shadow-card">
+          <section className="overflow-hidden rounded-lg border border-border bg-bg-elev-2 shadow-card">
             <div className="border-b border-border bg-bg-elev-1 px-4 py-3 sm:px-5">
             <div className="flex items-center gap-3">
               <span className="grid h-9 w-9 place-items-center rounded-lg bg-accent-soft text-accent"><CreditCard className="h-4 w-4" /></span>
@@ -611,7 +609,7 @@ function CheckoutInner() {
           </section>
         </form>
 
-        <aside className="h-fit rounded-2xl border border-border bg-bg-elev-2 p-4 shadow-card sm:p-5 lg:sticky lg:top-24">
+        <aside className="h-fit rounded-lg border border-border bg-bg-elev-2 p-4 shadow-card sm:p-5 lg:sticky lg:top-24">
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-base font-black">Order summary</h2>
             <span className="rounded-full bg-accent-soft px-2.5 py-1 text-xs font-bold text-accent">
