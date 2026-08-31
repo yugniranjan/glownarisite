@@ -25,6 +25,10 @@ function LoginInner() {
     setError('');
     try {
       const res = await startLogin({ email: email.trim(), password });
+      if ('token' in res) {
+        router.replace(next);
+        return;
+      }
       setRecipient(res.recipient);
       setStep('otp');
     } catch (err: any) {

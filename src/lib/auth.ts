@@ -10,6 +10,8 @@ export type StoreUser = {
 };
 
 type AuthPayload = { user: StoreUser; token: string };
+type OtpLoginPayload = { otpRequired: true; email: string; recipient: string; message: string };
+type LoginPayload = AuthPayload | OtpLoginPayload;
 
 const TOKEN_KEY = 'glownari_auth_token';
 const USER_KEY = 'glownari_auth_user';
@@ -72,7 +74,9 @@ export async function signup(body: {
 }
 
 export async function startLogin(body: { email: string; password: string }) {
-  return authFetch<{ otpRequired: boolean; email: string; recipient: string; message: string }>('/auth/login', body);
+  const payload = await authFetch<LoginPayload>('/auth/login', body);
+  if ('token' in payload) saveAuth(payload);
+  return payload;
 }
 
 export async function verifyLoginOtp(body: { email: string; otp: string }) {
