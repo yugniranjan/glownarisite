@@ -1,20 +1,17 @@
 import Link from 'next/link';
 import {
+  BadgePercent,
   Clock3,
+  Gem,
   HeartHandshake,
   MessageCircle,
-  Search,
+  MoveRight,
   Star,
-  ShoppingBag,
   Tag,
-  TicketPercent,
 } from 'lucide-react';
 import ProductCard from '@/components/ProductCard';
-import Rail, { RailItem } from '@/components/Rail';
 import PendingLinkButton from '@/components/PendingLinkButton';
-import HeroPromoSlider from '@/components/HeroPromoSlider';
 import {
-  getBanners,
   getCategories,
   getProducts,
   getPromo,
@@ -30,8 +27,29 @@ export const revalidate = 60;
 
 const FESTIVAL_BACKGROUND_IMAGE =
   process.env.NEXT_PUBLIC_FESTIVAL_BACKGROUND_IMAGE ||
-  'https://images.unsplash.com/photo-1605292356183-a77d0a9c9d1d?w=1800&auto=format&fit=crop&q=85';
+  'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=1800&auto=format&fit=crop&q=85';
 const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '918506965129';
+
+const COLLECTION_CARDS = [
+  {
+    id: 'earrings',
+    title: 'Earrings',
+    eyebrow: 'Explore collection',
+    copy: 'Trendy, elegant and timeless earrings for every occasion.',
+    href: '/#earrings',
+    cta: 'Shop earrings',
+    image: 'https://images.unsplash.com/photo-1630019852942-f89202989a59?w=1200&auto=format&fit=crop&q=85',
+  },
+  {
+    id: 'rings',
+    title: 'Rings',
+    eyebrow: 'Explore collection',
+    copy: 'Stunning rings crafted to celebrate every moment.',
+    href: '/#rings',
+    cta: 'Shop rings',
+    image: 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=1200&auto=format&fit=crop&q=85',
+  },
+];
 
 export default async function HomePage() {
   const [categories, featured, products, promo, proof] = await Promise.all([
@@ -41,17 +59,11 @@ export default async function HomePage() {
     getPromo(),
     getSocialProof(),
   ]);
-  const banners = await getBanners();
   const testimonials = await getTestimonials();
 
   const allProducts = products.items;
   const hero = featured.items[0] || allProducts[0];
-  const trending = featured.items.length > 0 ? featured.items : allProducts.slice(0, 12);
-  const budget = [...allProducts]
-    .filter((product) => product.priceCents > 0)
-    .sort((a, b) => a.priceCents - b.priceCents)
-    .slice(0, 12);
-  const latest = allProducts.slice(0, 16);
+  const saleProducts = (featured.items.length > 0 ? featured.items : allProducts).slice(0, 8);
 
   const productCounts = allProducts.reduce<Record<string, number>>((acc, product) => {
     const slug = product.category?.slug || 'other';
@@ -61,67 +73,33 @@ export default async function HomePage() {
 
   return (
     <>
-      {banners.length > 0 && <HeroPromoSlider banners={banners} />}
       {hero && (
         <Hero
           product={hero}
           promo={promo}
         />
       )}
-      <CategoryStrip categories={categories} productCounts={productCounts} />
+      <CollectionCards />
 
-      <div id="trending" />
       <div id="festival-products" />
-      {trending.length > 0 && (
-        <Rail
-          eyebrow="Festival edit"
-          title="Products in this sale"
-          description="Celebration-ready favourites chosen for gifting, dressing up and everyday joy."
-          seeAllHref="#products"
-        >
-          {trending.map((product) => (
-            <RailItem key={product.id} className="w-[72vw] sm:w-[42vw] md:w-[224px] lg:w-[232px]">
-              <ProductCard product={product} poster rating={proof.rating} reviewCount={proof.reviews} />
-            </RailItem>
-          ))}
-        </Rail>
-      )}
-
-      {budget.length > 0 && (
-        <Rail
-          eyebrow="Beauty on budget"
-          title="Best value finds"
-          description="Useful little upgrades that feel special without stretching your budget."
-        >
-          {budget.map((product) => (
-            <RailItem key={product.id} className="w-[72vw] sm:w-[42vw] md:w-[224px] lg:w-[232px]">
-              <ProductCard product={product} poster rating={proof.rating} reviewCount={proof.reviews} />
-            </RailItem>
-          ))}
-        </Rail>
-      )}
-
-      <PersonalShoppingHelp />
-
-      {latest.length > 0 && <section id="products" className="site-container section-content">
-        <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+      {saleProducts.length > 0 && <section id="products" className="site-container section-content">
+        <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="text-[11px] font-black uppercase tracking-[0.18em] text-accent">
-              Glownari collection
+            <p className="text-[12px] font-black uppercase tracking-[0.18em] text-accent">
+              Festival sale
             </p>
-            <h2 className="font-display mt-1 text-2xl sm:text-[32px]">Shop the look</h2>
-            <p className="mt-1.5 max-w-xl text-xs leading-5 text-text-muted sm:text-sm">
-              A mix of practical favourites and feel-good finds, all in one place.
+            <h2 className="font-display mt-1 text-3xl sm:text-[34px]">Products in this sale</h2>
+            <p className="mt-1.5 max-w-xl text-sm leading-6 text-text-muted sm:text-base">
+              Celebrate the season with our most loved earrings and rings.
             </p>
           </div>
-          <div className="inline-flex items-center gap-2 rounded-md border border-border bg-bg-elev-2 px-3 py-2 text-xs font-semibold text-text-muted">
-            <Search className="h-4 w-4 text-accent" />
-            {products.total || latest.length} products listed
-          </div>
+          <Link href="#products" className="inline-flex items-center gap-2 text-sm font-bold text-text hover:text-accent">
+            See all <MoveRight className="h-4 w-4" />
+          </Link>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-          {latest.map((product) => (
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {saleProducts.map((product) => (
             <ProductCard
               key={product.id}
               product={product}
@@ -131,6 +109,10 @@ export default async function HomePage() {
           ))}
         </div>
       </section>}
+
+      <CategoryStrip categories={categories} productCounts={productCounts} />
+
+      <PersonalShoppingHelp />
 
       {testimonials.length > 0 && <TestimonialsSection testimonials={testimonials} />}
     </>
@@ -143,7 +125,7 @@ function PersonalShoppingHelp() {
   );
 
   return (
-    <section className="border-y border-border bg-bg-elev-3">
+    <section id="support" className="border-y border-border bg-bg-elev-3">
       <div className="site-container flex flex-col gap-5 py-7 sm:flex-row sm:items-center sm:justify-between sm:py-8">
         <div className="flex items-start gap-4">
           <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-bg-elev-1 text-accent">
@@ -185,42 +167,41 @@ function Hero({
   const save = product.compareAtCents ? Math.max(product.compareAtCents - product.priceCents, 0) : 0;
   const savePct = product.compareAtCents ? Math.round((save / product.compareAtCents) * 100) : 0;
   const backgroundImage = promo.heroBackgroundImage || FESTIVAL_BACKGROUND_IMAGE;
-  const saleLabel = promo.heroSaleLabel || 'Diwali festival sale is live';
+  const saleLabel = promo.heroSaleLabel || 'Ring festival sale is live';
 
   return (
     <section className="bg-bg-elev-1 py-5 sm:py-6">
       <div className="site-container">
         <div
-          className="relative min-h-[320px] overflow-hidden rounded-lg border border-border bg-bg-elev-3 bg-cover bg-center shadow-card sm:min-h-[338px]"
-          style={{ backgroundImage: `url(${backgroundImage})` }}
+          className="relative min-h-[420px] overflow-hidden rounded-lg border border-border bg-bg-elev-3 bg-cover bg-center shadow-card sm:min-h-[486px]"
+          style={{
+            backgroundImage: `linear-gradient(90deg, rgba(253,250,251,0.98) 0%, rgba(253,250,251,0.92) 38%, rgba(253,250,251,0.20) 63%, rgba(253,250,251,0.02) 100%), url(${backgroundImage})`,
+          }}
         >
-          <div className="absolute inset-0 bg-black/20 sm:hidden" />
-          <div className="hero-copy-surface absolute inset-y-0 left-0 w-full sm:w-[64%] lg:w-[58%]" />
-
-          <div className="relative z-10 flex min-h-[320px] max-w-[790px] flex-col justify-center px-5 py-6 sm:min-h-[338px] sm:px-10 lg:px-12">
-            <div className="inline-flex w-fit max-w-full items-center gap-2 text-[10px] font-bold uppercase tracking-[0.18em] text-accent sm:text-[11px]">
+          <div className="relative z-10 flex min-h-[420px] max-w-[640px] flex-col justify-center px-5 py-8 sm:min-h-[486px] sm:px-10 lg:px-14">
+            <div className="inline-flex w-fit max-w-full items-center gap-2 text-[11px] font-black uppercase tracking-[0.20em] text-accent sm:text-[12px]">
               <Tag className="h-3.5 w-3.5" />
               <span className="truncate">{saleLabel}</span>
             </div>
-            <h1 className="font-display mt-3 max-w-[19ch] text-4xl leading-[1.04] text-text sm:text-5xl lg:text-[52px]">
-              Premium festive deals on favourite products
+            <h1 className="font-display mt-4 max-w-[12ch] text-5xl leading-[1.03] text-text sm:text-6xl lg:text-[72px]">
+              Elegant rings for every moment
             </h1>
-            <p className="mt-3 max-w-lg text-sm font-medium leading-6 text-text-muted sm:text-base">
-              Thoughtfully curated fashion, beauty, jewellery and gifting picks at prices worth celebrating.
+            <p className="mt-5 max-w-xl text-base font-medium leading-7 text-text-muted sm:text-xl">
+              Discover beautifully crafted rings that add sparkle to your style. Premium quality, perfect for gifting or self-love.
             </p>
 
-            <div className="mt-5 flex max-w-xl flex-wrap items-center gap-x-5 gap-y-3 border-y border-border py-3">
-              <SaleChip icon={TicketPercent} label="Min. off" value={savePct > 0 ? `${savePct}%` : '45%'} />
-              <SaleChip icon={Tag} label="Coupon" value="SALE50" />
+            <div className="mt-6 flex max-w-xl flex-wrap items-center gap-x-6 gap-y-4 border-y border-border py-4">
+              <SaleChip icon={BadgePercent} label="Min. off" value={savePct > 0 ? `${savePct}%` : '45%'} />
+              <SaleChip icon={Tag} label="Coupon" value="RING50" />
               <SaleChip icon={Clock3} label="Ends in" value="2 days" />
             </div>
 
-            <div className="mt-5 flex flex-wrap gap-3">
-              <Link href="#festival-products" className="inline-flex h-11 items-center justify-center rounded-md bg-accent px-6 text-sm font-bold text-white transition hover:bg-accent-strong">
-                Shop sale
+            <div className="mt-6 flex flex-wrap gap-4">
+              <Link href="#festival-products" className="inline-flex h-12 items-center justify-center rounded-md bg-accent px-7 text-base font-bold text-white shadow-cta transition hover:bg-accent-strong">
+                Shop rings
               </Link>
-              <PendingLinkButton href={`/products/${product.slug}`} className="inline-flex h-11 items-center justify-center rounded-md border border-border-strong bg-bg-elev-1/80 px-6 text-sm font-bold text-text transition hover:border-accent hover:text-accent">
-                View best deal
+              <PendingLinkButton href={`/products/${product.slug}`} className="inline-flex h-12 items-center justify-center rounded-md border border-border-strong bg-bg-elev-1/80 px-7 text-base font-bold text-text transition hover:border-accent hover:text-accent">
+                View collection
               </PendingLinkButton>
             </div>
           </div>
@@ -241,14 +222,43 @@ function SaleChip({
 }) {
   return (
     <div className="flex min-w-[112px] items-center gap-2.5">
-      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
+      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
         <Icon className="h-4 w-4" />
       </span>
       <div>
-        <div className="text-[9px] font-bold uppercase tracking-[0.12em] text-text-dim">{label}</div>
-        <div className="text-sm font-black text-text">{value}</div>
+        <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-text-dim">{label}</div>
+        <div className="text-base font-black text-text">{value}</div>
       </div>
     </div>
+  );
+}
+
+function CollectionCards() {
+  return (
+    <section className="bg-bg-elev-1 pb-2">
+      <div className="site-container grid gap-5 lg:grid-cols-2">
+        {COLLECTION_CARDS.map((card) => (
+          <Link
+            key={card.id}
+            id={card.id}
+            href={card.href}
+            className="group relative min-h-[180px] overflow-hidden rounded-lg border border-border bg-bg-elev-3 bg-cover bg-center shadow-card transition hover:-translate-y-0.5 hover:border-accent/30 hover:shadow-hover"
+            style={{
+              backgroundImage: `linear-gradient(90deg, rgba(253,250,251,0.97) 0%, rgba(253,250,251,0.82) 38%, rgba(253,250,251,0.02) 78%), url(${card.image})`,
+            }}
+          >
+            <div className="flex min-h-[180px] max-w-[360px] flex-col justify-center p-6 sm:p-8">
+              <p className="text-[12px] font-black uppercase tracking-[0.20em] text-accent">{card.eyebrow}</p>
+              <h2 className="font-display mt-2 text-4xl text-text">{card.title}</h2>
+              <p className="mt-2 text-sm font-medium leading-6 text-text-muted">{card.copy}</p>
+              <span className="mt-5 inline-flex h-10 w-fit items-center justify-center rounded-md bg-accent px-5 text-sm font-bold text-white transition group-hover:bg-accent-strong">
+                {card.cta}
+              </span>
+            </div>
+          </Link>
+        ))}
+      </div>
+    </section>
   );
 }
 
@@ -279,7 +289,7 @@ function CategoryStrip({
                     className="absolute inset-0 h-full w-full object-cover transition duration-300 group-hover:scale-105"
                   />
                 ) : (
-                  <ShoppingBag className="h-5 w-5" strokeWidth={2.4} />
+                  <Gem className="h-5 w-5" strokeWidth={2.4} />
                 )}
               </span>
               <span className="mt-2.5 line-clamp-1 text-xs font-bold text-text group-hover:text-accent sm:text-sm">{category.name}</span>

@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Package, Star, Truck } from 'lucide-react';
+import { Package } from 'lucide-react';
 import { compactCount, formatMoney, type GlownariProduct } from '@/lib/api';
 import AddToCartButton from '@/components/AddToCartButton';
 
@@ -14,7 +14,6 @@ interface Props {
 export default function ProductCard({
   product,
   poster,
-  rating,
   reviewCount,
 }: Props) {
   const save = product.compareAtCents
@@ -35,13 +34,13 @@ export default function ProductCard({
         href={`/products/${product.slug}`}
         className="relative block overflow-hidden border-b border-border bg-bg-elev-3"
       >
-        <div className={poster ? 'aspect-video p-2.5' : 'aspect-[4/3] p-2.5'}>
+        <div className={poster ? 'aspect-[4/3]' : 'aspect-[4/3]'}>
           {product.coverImage ? (
             <img
               src={product.coverImage}
               alt={product.name}
               loading="lazy"
-              className="h-full w-full rounded-md object-cover transition-transform duration-300 group-hover:scale-[1.025]"
+              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.025]"
             />
           ) : (
             <div className="grid h-full place-items-center rounded-md bg-accent-soft">
@@ -57,40 +56,22 @@ export default function ProductCard({
         )}
       </Link>
 
-      <div className="flex flex-1 flex-col p-2.5">
-        <div className="flex items-center justify-between gap-2">
-          <span className="line-clamp-1 text-[10px] font-bold uppercase tracking-[0.12em] text-accent">
-            {category}
-          </span>
-          {product.badge && (
-            <span className="line-clamp-1 max-w-[48%] text-[10px] font-semibold text-text-dim">
-              {product.badge}
-            </span>
-          )}
-        </div>
-
+      <div className="flex flex-1 flex-col p-3 sm:p-3.5">
         <Link href={`/products/${product.slug}`} className="mt-1 block">
-          <h3 className="line-clamp-1 min-h-[20px] text-sm font-bold leading-[1.35] text-text transition hover:text-accent sm:text-[15px]">
+          <h3 className="line-clamp-1 min-h-[24px] text-base font-bold leading-[1.35] text-text transition hover:text-accent sm:text-lg">
             {product.name}
           </h3>
         </Link>
 
-        <div className="mt-1.5 flex items-center gap-1.5">
-          <span className="inline-flex h-5 items-center gap-1 rounded bg-success px-1.5 text-[10px] font-bold text-white">
-            {rating.toFixed(1)} <Star className="h-2.5 w-2.5 fill-current" />
-          </span>
-          {reviewCount > 0 && (
-            <span className="text-[10px] font-medium text-text-dim">
-              ({compactCount(reviewCount)})
-            </span>
-          )}
-          {isLowStock && (
-            <span className="ml-auto text-[10px] font-bold text-accent">Few left</span>
-          )}
+        <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-text-dim">
+          <span>{category}</span>
+          {product.badge && <span className="text-accent">{product.badge}</span>}
+          {reviewCount > 0 && <span>{compactCount(reviewCount)} reviews</span>}
+          {isLowStock && <span className="text-accent">Few left</span>}
         </div>
 
         <div className="mt-2 flex flex-wrap items-baseline gap-x-2 gap-y-1">
-          <span className="text-lg font-black leading-none text-text">
+          <span className="text-xl font-black leading-none text-text">
             {formatMoney(product.priceCents, product.currency)}
           </span>
           {product.compareAtCents && (
@@ -103,14 +84,7 @@ export default function ProductCard({
           )}
         </div>
 
-        <div className="mt-1.5 flex min-h-[18px] items-center gap-1.5 text-[11px] font-medium text-text-muted">
-          <Truck className="h-3.5 w-3.5 shrink-0 text-success" />
-          <span className="truncate">
-            {[product.accountType || 'Ready to ship', 'Free delivery'].join(' · ')}
-          </span>
-        </div>
-
-        <div className="mt-auto pt-2.5">
+        <div className="mt-auto pt-4">
           <AddToCartButton product={product} />
         </div>
       </div>

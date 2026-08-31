@@ -6,6 +6,9 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import {
   ChevronRight,
+  Circle,
+  Gem,
+  Home,
   Menu,
   MessageCircle,
   PackageCheck,
@@ -19,11 +22,13 @@ import CartHeaderLink from '@/components/CartHeaderLink';
 import AccountHeaderButton from '@/components/AccountHeaderButton';
 import HeaderSearch from '@/components/HeaderSearch';
 
+
 interface NavLink { href: string; label: string; }
 const PRIMARY_NAV: NavLink[] = [
   { href: '/',                 label: 'Home' },
-  { href: '/#trending',        label: 'Trending' },
-  { href: '/#products',        label: 'Products' },
+  { href: '/#earrings',        label: 'Earrings' },
+  { href: '/#rings',           label: 'Rings' },
+  { href: '/#support',         label: 'Support' },
   { href: '/cart',             label: 'Cart' },
   { href: '/track-order',      label: 'Track order' },
 ];
@@ -55,7 +60,7 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-40">
       <div className="border-b border-border bg-bg-elev-1/95 text-text backdrop-blur-xl">
-        <div className="site-container flex h-14 items-center gap-2 sm:h-16 sm:gap-3 lg:gap-4">
+        <div className="site-container flex h-16 items-center gap-2 sm:h-[76px] sm:gap-3 lg:h-[86px] lg:gap-5">
           <button
             type="button"
             onClick={() => setDrawerOpen(true)}
@@ -67,10 +72,10 @@ export default function Header() {
 
           <Link href="/" className="flex shrink-0 items-center">
             <span
-              className={`inline-flex items-center justify-center overflow-hidden transition-all duration-300 ${
+              className={`inline-flex items-center justify-center overflow-hidden border border-accent/45 bg-bg-elev-1 px-3 transition-all duration-300 ${
                 scrolled
-                  ? 'h-9 w-10'
-                  : 'h-9 w-[152px] sm:h-11 sm:w-[190px] lg:w-[204px]'
+                  ? 'h-10 w-12'
+                  : 'h-11 w-[176px] sm:h-[52px] sm:w-[236px] lg:w-[260px]'
               }`}
             >
               <Image
@@ -101,9 +106,9 @@ export default function Header() {
             <AccountHeaderButton mobile />
           </div>
 
-          <nav className="ml-auto hidden shrink-0 items-center gap-1 text-sm font-semibold text-text-muted lg:flex">
-            <Link href="/track-order" className="inline-flex h-10 items-center gap-1.5 rounded-md px-2.5 transition hover:bg-bg-glass hover:text-text">
-              <PackageCheck className="h-4 w-4" />
+          <nav className="ml-auto hidden shrink-0 items-center gap-2 text-[15px] font-semibold text-text-muted lg:flex">
+            <Link href="/track-order" className="inline-flex h-10 items-center gap-2 rounded-md px-2.5 transition hover:bg-bg-glass hover:text-text">
+              <PackageCheck className="h-5 w-5" />
               Track
             </Link>
             <CartHeaderLink />
@@ -125,18 +130,25 @@ export default function Header() {
       </div>
 
       <div className="hidden border-b border-border bg-bg-elev-1 lg:block">
-        <div className="site-container flex h-11 items-center justify-center gap-1 text-[13px] font-semibold text-text-muted">
-          <Link href="/#products" className="rounded-md px-4 py-2 transition hover:bg-accent-soft hover:text-accent">Shop all</Link>
-          <Link href="/#trending" className="rounded-md px-4 py-2 transition hover:bg-accent-soft hover:text-accent">New arrivals</Link>
-          <Link href="/#products" className="rounded-md px-4 py-2 transition hover:bg-accent-soft hover:text-accent">Best sellers</Link>
-          <Link href="/#festival-products" className="rounded-md px-4 py-2 transition hover:bg-accent-soft hover:text-accent">Festival store</Link>
-          <Link href="/track-order" className="rounded-md px-4 py-2 transition hover:bg-accent-soft hover:text-accent">Order help</Link>
+        <div className="site-container flex h-[62px] items-center justify-center gap-8 text-[17px] font-bold text-text">
+          <Link href="/" className="inline-flex h-full items-center gap-2 border-b-2 border-accent px-2 text-accent">
+            <Home className="h-5 w-5" />
+            Home
+          </Link>
+          <Link href="/#earrings" className="inline-flex h-full items-center gap-2 border-b-2 border-transparent px-2 transition hover:border-accent/40 hover:text-accent">
+            <Gem className="h-5 w-5" />
+            Earrings
+          </Link>
+          <Link href="/#rings" className="inline-flex h-full items-center gap-2 border-b-2 border-transparent px-2 transition hover:border-accent/40 hover:text-accent">
+            <Circle className="h-5 w-5" />
+            Rings
+          </Link>
           <a
             href={`https://wa.me/${WHATSAPP_NUMBER}`}
-            className="inline-flex items-center gap-1.5 rounded-md px-4 py-2 transition hover:bg-accent-soft hover:text-accent"
+            className="inline-flex h-full items-center gap-2 border-b-2 border-transparent px-2 transition hover:border-accent/40 hover:text-accent"
           >
-            <MessageCircle className="h-3.5 w-3.5" />
-            Chat
+            <MessageCircle className="h-5 w-5" />
+            Support
           </a>
         </div>
       </div>

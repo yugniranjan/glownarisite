@@ -5,7 +5,7 @@ import { Clock3, Loader2, Package, Search, Sparkles, TrendingUp, X } from 'lucid
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { formatMoney, getProducts, type GlownariProduct } from '@/lib/api';
 
-const QUICK_TERMS = ['Fashion', 'Beauty', 'Bags', 'Gifts'];
+const QUICK_TERMS = ['Rose gold rings', 'Drop earrings', 'Hoop earrings', 'Pearl jewellery'];
 
 export default function HeaderSearch({ mobile = false, autoFocus = false }: { mobile?: boolean; autoFocus?: boolean }) {
   const [query, setQuery] = useState('');
@@ -50,9 +50,9 @@ export default function HeaderSearch({ mobile = false, autoFocus = false }: { mo
   }
 
   return (
-    <div ref={rootRef} className={`relative ${mobile ? 'w-full' : 'hidden min-w-[260px] max-w-[590px] flex-1 lg:block'}`}>
-      <div className="flex h-11 items-center gap-2 rounded-md border border-border-strong bg-bg-elev-2 px-2.5 text-text transition focus-within:border-accent focus-within:ring-2 focus-within:ring-accent-soft">
-        <span className="grid h-8 w-8 shrink-0 place-items-center rounded bg-accent-soft text-accent">
+    <div ref={rootRef} className={`relative ${mobile ? 'w-full' : 'hidden min-w-[320px] max-w-[610px] flex-1 lg:block'}`}>
+      <div className="flex h-[52px] items-center gap-2 rounded-lg border border-border bg-bg-elev-2 px-3 text-text shadow-sm transition focus-within:border-accent/40 focus-within:shadow-card">
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-md bg-accent-soft text-accent">
           <Search className="h-5 w-5" aria-hidden />
         </span>
         <input
@@ -70,7 +70,7 @@ export default function HeaderSearch({ mobile = false, autoFocus = false }: { mo
             }
             if (event.key === 'Escape') setOpen(false);
           }}
-          placeholder="Search products, categories..."
+          placeholder="Search earrings, rings..."
           className="h-full min-w-0 flex-1 border-0 bg-transparent text-sm font-medium text-text outline-none ring-0 placeholder:text-text-dim focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0"
         />
         {loading && <Loader2 className="h-4 w-4 shrink-0 animate-spin text-accent" />}
@@ -79,13 +79,13 @@ export default function HeaderSearch({ mobile = false, autoFocus = false }: { mo
             <X className="h-4 w-4" />
           </button>
         )}
-        <button type="button" onClick={submit} className="hidden h-8 rounded bg-accent px-4 text-xs font-bold text-white hover:bg-accent-strong sm:inline-flex sm:items-center">
+        <button type="button" onClick={submit} className="hidden h-10 rounded-md bg-accent px-6 text-sm font-bold text-white shadow-cta transition hover:bg-accent-strong sm:inline-flex sm:items-center">
           Search
         </button>
       </div>
 
       {open && (
-        <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-lg border border-border bg-bg-elev-2 text-text shadow-hover">
+        <div className="absolute left-0 right-0 top-full z-50 mt-3 overflow-hidden rounded-lg border border-border bg-bg-elev-2 text-text shadow-hover">
           <div className="flex items-center justify-between gap-3 border-b border-border bg-bg-elev-1 px-4 py-3">
             <div className="flex min-w-0 items-center gap-2">
               {trimmed ? <Search className="h-4 w-4 shrink-0 text-accent" /> : <TrendingUp className="h-4 w-4 shrink-0 text-accent" />}
@@ -161,7 +161,7 @@ export default function HeaderSearch({ mobile = false, autoFocus = false }: { mo
             <div className="p-6 text-center">
               <Package className="mx-auto h-9 w-9 text-text-dim" />
               <div className="mt-3 font-black">No products found</div>
-              <p className="mt-1 text-sm text-text-muted">Try a category like Fashion, Beauty, Bags, or Gifts.</p>
+              <p className="mt-1 text-sm text-text-muted">Try rose gold rings, drop earrings, hoops, or pearl jewellery.</p>
             </div>
           )}
         </div>
