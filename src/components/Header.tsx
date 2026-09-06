@@ -106,7 +106,7 @@ export default function Header() {
             <AccountHeaderButton mobile />
           </div>
 
-          <nav className="ml-auto hidden shrink-0 items-center gap-2 text-[15px] font-semibold text-text-muted lg:flex">
+          <nav className="ml-auto hidden shrink-0 items-center gap-2 text-[15px] font-medium text-text-muted lg:flex">
             <Link href="/track-order" className="inline-flex h-10 items-center gap-2 rounded-md px-2.5 transition hover:bg-bg-glass hover:text-text">
               <PackageCheck className="h-5 w-5" />
               Track
@@ -130,7 +130,7 @@ export default function Header() {
       </div>
 
       <div className="hidden border-b border-border bg-bg-elev-1 lg:block">
-        <div className="site-container flex h-[62px] items-center justify-center gap-8 text-[17px] font-bold text-text">
+        <div className="site-container flex h-[62px] items-center justify-center gap-8 text-[17px] font-medium text-text">
           <Link href="/" className="inline-flex h-full items-center gap-2 border-b-2 border-accent px-2 text-accent">
             <Home className="h-5 w-5" />
             Home

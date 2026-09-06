@@ -41,6 +41,8 @@ export interface GlownariBanner {
   priceLabel: string | null;
   href: string;
   image: string;
+  productId?: string | null;
+  product?: Pick<GlownariProduct, 'id' | 'name' | 'slug'> | null;
   brand: string | null;
   theme: 'pink' | 'charcoal' | 'gold' | 'green' | 'blue' | 'purple';
   isActive: boolean;
@@ -455,6 +457,7 @@ export async function getPaymentConfig(): Promise<PaymentConfig> {
 export type PromoConfig = {
   bannerEnabled: boolean;
   bannerText: string | null;
+  festivalEnabled?: boolean;
   heroSaleLabel?: string | null;
   heroTitle?: string | null;
   heroSubtitle?: string | null;
@@ -472,7 +475,7 @@ export async function getPromo(): Promise<PromoConfig> {
     if (!res.ok) throw new Error('promo failed');
     return await res.json();
   } catch {
-    return { bannerEnabled: false, bannerText: null, heroSaleLabel: null, heroBackgroundImage: null };
+    return { bannerEnabled: false, bannerText: null, festivalEnabled: true, heroSaleLabel: null, heroBackgroundImage: null };
   }
 }
 

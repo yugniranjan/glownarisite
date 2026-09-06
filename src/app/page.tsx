@@ -45,20 +45,21 @@ export default async function HomePage() {
   const allProducts = products.items;
   const hero = featured.items[0] || allProducts[0];
   const saleProducts = (featured.items.length > 0 ? featured.items : allProducts).slice(0, 8);
+  const festivalEnabled = promo.festivalEnabled !== false;
 
   return (
     <>
-      {hero && (
+      <HeroPromoSlider banners={banners} />
+      {festivalEnabled && hero && (
         <Hero
           product={hero}
           promo={promo}
         />
       )}
-      <HeroPromoSlider banners={banners} />
       <CollectionCards categories={categories} products={allProducts} />
 
-      <div id="festival-products" />
-      {saleProducts.length > 0 && <section id="products" className="site-container section-content">
+      {festivalEnabled && <div id="festival-products" />}
+      {festivalEnabled && saleProducts.length > 0 && <section id="products" className="site-container section-content">
         <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="text-[12px] font-black uppercase tracking-[0.18em] text-accent">
@@ -148,37 +149,37 @@ function Hero({
   const endsIn = promo.heroEndsInLabel || '2 days';
 
   return (
-    <section className="bg-bg-elev-1 py-5 sm:py-6">
+    <section className="bg-bg-elev-1 py-3 sm:py-4">
       <div className="site-container">
         <div
-          className="relative min-h-[420px] overflow-hidden rounded-lg border border-border bg-bg-elev-3 bg-cover bg-center shadow-card sm:min-h-[486px]"
+          className="relative min-h-[330px] overflow-hidden rounded-lg border border-border bg-bg-elev-3 bg-cover bg-center shadow-card sm:min-h-[390px]"
           style={{
             backgroundImage: `linear-gradient(90deg, rgba(253,250,251,0.98) 0%, rgba(253,250,251,0.92) 38%, rgba(253,250,251,0.20) 63%, rgba(253,250,251,0.02) 100%), url(${backgroundImage})`,
           }}
         >
-          <div className="relative z-10 flex min-h-[420px] max-w-[640px] flex-col justify-center px-5 py-8 sm:min-h-[486px] sm:px-10 lg:px-14">
+          <div className="relative z-10 flex min-h-[330px] max-w-[600px] flex-col justify-center px-5 py-7 sm:min-h-[390px] sm:px-9 lg:px-12">
             <div className="inline-flex w-fit max-w-full items-center gap-2 text-[11px] font-black uppercase tracking-[0.20em] text-accent sm:text-[12px]">
               <Tag className="h-3.5 w-3.5" />
               <span className="truncate">{saleLabel}</span>
             </div>
-            <h1 className="font-display mt-4 max-w-[12ch] text-5xl leading-[1.03] text-text sm:text-6xl lg:text-[72px]">
+            <h1 className="font-display mt-3 max-w-[13ch] text-4xl leading-[1.04] text-text sm:text-5xl lg:text-[58px]">
               {title}
             </h1>
-            <p className="mt-5 max-w-xl text-base font-medium leading-7 text-text-muted sm:text-xl">
+            <p className="mt-4 max-w-xl text-sm font-medium leading-6 text-text-muted sm:text-lg">
               {subtitle}
             </p>
 
-            <div className="mt-6 flex max-w-xl flex-wrap items-center gap-x-6 gap-y-4 border-y border-border py-4">
+            <div className="mt-5 flex max-w-xl flex-wrap items-center gap-x-5 gap-y-3 border-y border-border py-3">
               <SaleChip icon={BadgePercent} label="Min. off" value={savePct > 0 ? `${savePct}%` : '45%'} />
               <SaleChip icon={Tag} label="Coupon" value={coupon} />
               <SaleChip icon={Clock3} label="Ends in" value={endsIn} />
             </div>
 
-            <div className="mt-6 flex flex-wrap gap-4">
-              <Link href="#festival-products" className="inline-flex h-12 items-center justify-center rounded-md bg-accent px-7 text-base font-bold text-white shadow-cta transition hover:bg-accent-strong">
+            <div className="mt-5 flex flex-wrap gap-3">
+              <Link href="#festival-products" className="inline-flex h-11 items-center justify-center rounded-md bg-accent px-6 text-sm font-bold text-white shadow-cta transition hover:bg-accent-strong">
                 Shop rings
               </Link>
-              <PendingLinkButton href={`/products/${product.slug}`} className="inline-flex h-12 items-center justify-center rounded-md border border-border-strong bg-bg-elev-1/80 px-7 text-base font-bold text-text transition hover:border-accent hover:text-accent">
+              <PendingLinkButton href={`/products/${product.slug}`} className="inline-flex h-11 items-center justify-center rounded-md border border-border-strong bg-bg-elev-1/80 px-6 text-sm font-bold text-text transition hover:border-accent hover:text-accent">
                 View collection
               </PendingLinkButton>
             </div>

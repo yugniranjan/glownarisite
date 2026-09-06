@@ -41,10 +41,11 @@ export default function HeroPromoSlider({ banners }: { banners: Banner[] }) {
             const offset = ((index - active + total + Math.floor(total / 2)) % total) - Math.floor(total / 2);
             const isActive = offset === 0;
             const isVisible = Math.abs(offset) <= 1;
+            const href = banner.product?.slug ? `/products/${banner.product.slug}` : banner.href;
             return (
               <Link
                 key={banner.title}
-                href={banner.href}
+                href={href}
                 aria-hidden={!isVisible}
                 tabIndex={isVisible ? 0 : -1}
                 className={`absolute left-1/2 top-0 h-full w-[88vw] max-w-[780px] overflow-hidden rounded-lg border border-border bg-[#171519] shadow-card transition-all duration-500 ease-out sm:w-[74vw] lg:w-[760px] ${
