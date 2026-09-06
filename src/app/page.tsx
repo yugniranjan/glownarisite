@@ -2,7 +2,6 @@ import Link from 'next/link';
 import {
   BadgePercent,
   Clock3,
-  Gem,
   HeartHandshake,
   MessageCircle,
   MoveRight,
@@ -11,7 +10,9 @@ import {
 } from 'lucide-react';
 import ProductCard from '@/components/ProductCard';
 import PendingLinkButton from '@/components/PendingLinkButton';
+import HeroPromoSlider from '@/components/HeroPromoSlider';
 import {
+  getBanners,
   getCategories,
   getProducts,
   getPromo,
@@ -30,46 +31,20 @@ const FESTIVAL_BACKGROUND_IMAGE =
   'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=1800&auto=format&fit=crop&q=85';
 const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '918506965129';
 
-const COLLECTION_CARDS = [
-  {
-    id: 'earrings',
-    title: 'Earrings',
-    eyebrow: 'Explore collection',
-    copy: 'Trendy, elegant and timeless earrings for every occasion.',
-    href: '/#earrings',
-    cta: 'Shop earrings',
-    image: 'https://images.unsplash.com/photo-1630019852942-f89202989a59?w=1200&auto=format&fit=crop&q=85',
-  },
-  {
-    id: 'rings',
-    title: 'Rings',
-    eyebrow: 'Explore collection',
-    copy: 'Stunning rings crafted to celebrate every moment.',
-    href: '/#rings',
-    cta: 'Shop rings',
-    image: 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=1200&auto=format&fit=crop&q=85',
-  },
-];
-
 export default async function HomePage() {
-  const [categories, featured, products, promo, proof] = await Promise.all([
+  const [categories, featured, products, promo, proof, banners] = await Promise.all([
     getCategories(),
     getProducts({ featured: true, take: 12 }),
     getProducts({ take: 40 }),
     getPromo(),
     getSocialProof(),
+    getBanners(),
   ]);
   const testimonials = await getTestimonials();
 
   const allProducts = products.items;
   const hero = featured.items[0] || allProducts[0];
   const saleProducts = (featured.items.length > 0 ? featured.items : allProducts).slice(0, 8);
-
-  const productCounts = allProducts.reduce<Record<string, number>>((acc, product) => {
-    const slug = product.category?.slug || 'other';
-    acc[slug] = (acc[slug] || 0) + 1;
-    return acc;
-  }, {});
 
   return (
     <>
@@ -79,18 +54,19 @@ export default async function HomePage() {
           promo={promo}
         />
       )}
-      <CollectionCards />
+      <HeroPromoSlider banners={banners} />
+      <CollectionCards categories={categories} products={allProducts} />
 
       <div id="festival-products" />
       {saleProducts.length > 0 && <section id="products" className="site-container section-content">
         <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="text-[12px] font-black uppercase tracking-[0.18em] text-accent">
-              Festival sale
+              {promo.saleSectionEyebrow || 'Festival sale'}
             </p>
-            <h2 className="font-display mt-1 text-3xl sm:text-[34px]">Products in this sale</h2>
+            <h2 className="font-display mt-1 text-3xl sm:text-[34px]">{promo.saleSectionTitle || 'Products in this sale'}</h2>
             <p className="mt-1.5 max-w-xl text-sm leading-6 text-text-muted sm:text-base">
-              Celebrate the season with our most loved earrings and rings.
+              {promo.saleSectionSubtitle || 'Celebrate the season with our most loved earrings and rings.'}
             </p>
           </div>
           <Link href="#products" className="inline-flex items-center gap-2 text-sm font-bold text-text hover:text-accent">
@@ -109,8 +85,6 @@ export default async function HomePage() {
           ))}
         </div>
       </section>}
-
-      <CategoryStrip categories={categories} productCounts={productCounts} />
 
       <PersonalShoppingHelp />
 
@@ -168,6 +142,10 @@ function Hero({
   const savePct = product.compareAtCents ? Math.round((save / product.compareAtCents) * 100) : 0;
   const backgroundImage = promo.heroBackgroundImage || FESTIVAL_BACKGROUND_IMAGE;
   const saleLabel = promo.heroSaleLabel || 'Ring festival sale is live';
+  const title = promo.heroTitle || 'Elegant rings for every moment';
+  const subtitle = promo.heroSubtitle || 'Discover beautifully crafted rings that add sparkle to your style. Premium quality, perfect for gifting or self-love.';
+  const coupon = promo.heroCouponCode || 'RING50';
+  const endsIn = promo.heroEndsInLabel || '2 days';
 
   return (
     <section className="bg-bg-elev-1 py-5 sm:py-6">
@@ -184,16 +162,16 @@ function Hero({
               <span className="truncate">{saleLabel}</span>
             </div>
             <h1 className="font-display mt-4 max-w-[12ch] text-5xl leading-[1.03] text-text sm:text-6xl lg:text-[72px]">
-              Elegant rings for every moment
+              {title}
             </h1>
             <p className="mt-5 max-w-xl text-base font-medium leading-7 text-text-muted sm:text-xl">
-              Discover beautifully crafted rings that add sparkle to your style. Premium quality, perfect for gifting or self-love.
+              {subtitle}
             </p>
 
             <div className="mt-6 flex max-w-xl flex-wrap items-center gap-x-6 gap-y-4 border-y border-border py-4">
               <SaleChip icon={BadgePercent} label="Min. off" value={savePct > 0 ? `${savePct}%` : '45%'} />
-              <SaleChip icon={Tag} label="Coupon" value="RING50" />
-              <SaleChip icon={Clock3} label="Ends in" value="2 days" />
+              <SaleChip icon={Tag} label="Coupon" value={coupon} />
+              <SaleChip icon={Clock3} label="Ends in" value={endsIn} />
             </div>
 
             <div className="mt-6 flex flex-wrap gap-4">
@@ -233,72 +211,53 @@ function SaleChip({
   );
 }
 
-function CollectionCards() {
+function CollectionCards({
+  categories,
+  products,
+}: {
+  categories: GlownariCategory[];
+  products: GlownariProduct[];
+}) {
+  const visible = categories
+    .filter((category) => category.isActive)
+    .slice(0, 6)
+    .map((category) => {
+      const fallbackImage = products.find((product) => product.category?.id === category.id)?.coverImage;
+      return {
+        ...category,
+        image: category.image || fallbackImage || FESTIVAL_BACKGROUND_IMAGE,
+      };
+    });
+
+  if (visible.length === 0) return null;
+
   return (
-    <section className="bg-bg-elev-1 pb-2">
+    <section className="bg-bg-elev-1 pb-4">
       <div className="site-container grid gap-5 lg:grid-cols-2">
-        {COLLECTION_CARDS.map((card) => (
+        {visible.map((category) => (
           <Link
-            key={card.id}
-            id={card.id}
-            href={card.href}
-            className="group relative min-h-[180px] overflow-hidden rounded-lg border border-border bg-bg-elev-3 bg-cover bg-center shadow-card transition hover:-translate-y-0.5 hover:border-accent/30 hover:shadow-hover"
+            key={category.id}
+            id={category.slug}
+            href={`/category/${category.slug}`}
+            className="group relative min-h-[238px] overflow-hidden rounded-lg border border-border bg-bg-elev-3 bg-cover bg-center shadow-card transition hover:-translate-y-0.5 hover:border-accent/30 hover:shadow-hover"
             style={{
-              backgroundImage: `linear-gradient(90deg, rgba(253,250,251,0.97) 0%, rgba(253,250,251,0.82) 38%, rgba(253,250,251,0.02) 78%), url(${card.image})`,
+              backgroundImage: `linear-gradient(90deg, rgba(253,250,251,0.97) 0%, rgba(253,250,251,0.82) 40%, rgba(253,250,251,0.05) 82%), url(${category.image})`,
             }}
           >
-            <div className="flex min-h-[180px] max-w-[360px] flex-col justify-center p-6 sm:p-8">
-              <p className="text-[12px] font-black uppercase tracking-[0.20em] text-accent">{card.eyebrow}</p>
-              <h2 className="font-display mt-2 text-4xl text-text">{card.title}</h2>
-              <p className="mt-2 text-sm font-medium leading-6 text-text-muted">{card.copy}</p>
-              <span className="mt-5 inline-flex h-10 w-fit items-center justify-center rounded-md bg-accent px-5 text-sm font-bold text-white transition group-hover:bg-accent-strong">
-                {card.cta}
+            <div className="flex min-h-[238px] max-w-[430px] flex-col justify-center p-6 sm:p-8">
+              <p className="text-[12px] font-black uppercase tracking-[0.20em] text-accent">Explore collection</p>
+              <h2 className="font-display mt-2 text-4xl text-text sm:text-5xl">{category.name}</h2>
+              {category.description && (
+                <p className="mt-3 max-w-[34ch] text-base font-medium leading-7 text-text-muted">
+                  {category.description}
+                </p>
+              )}
+              <span className="mt-6 inline-flex h-12 w-fit items-center justify-center rounded-md bg-accent px-6 text-base font-bold text-white transition group-hover:bg-accent-strong">
+                Shop {category.name.toLowerCase()}
               </span>
             </div>
           </Link>
         ))}
-      </div>
-    </section>
-  );
-}
-
-function CategoryStrip({
-  categories,
-  productCounts,
-}: {
-  categories: GlownariCategory[];
-  productCounts: Record<string, number>;
-}) {
-  const visible = categories.filter((category) => (productCounts[category.slug] || 0) > 0).slice(0, 12);
-  if (visible.length === 0) return null;
-  return (
-    <section className="border-b border-border bg-bg-elev-1">
-      <div className="site-container py-5 sm:py-6">
-        <div className="no-scrollbar flex snap-x justify-start gap-6 overflow-x-auto lg:justify-between">
-          {visible.map((category) => (
-            <Link
-              key={category.id}
-              href={`/category/${category.slug}`}
-              className="group flex min-w-[86px] snap-start flex-col items-center text-center transition hover:text-accent sm:min-w-[96px]"
-            >
-              <span className="relative grid h-16 w-16 place-items-center overflow-hidden rounded-full border border-border bg-bg-elev-3 text-accent transition group-hover:border-accent">
-                {category.image ? (
-                  <img
-                    src={category.image}
-                    alt={category.name}
-                    className="absolute inset-0 h-full w-full object-cover transition duration-300 group-hover:scale-105"
-                  />
-                ) : (
-                  <Gem className="h-5 w-5" strokeWidth={2.4} />
-                )}
-              </span>
-              <span className="mt-2.5 line-clamp-1 text-xs font-bold text-text group-hover:text-accent sm:text-sm">{category.name}</span>
-              <span className="mt-1 text-[10px] font-medium text-text-dim">
-                {productCounts[category.slug] || 0} items
-              </span>
-            </Link>
-          ))}
-        </div>
       </div>
     </section>
   );

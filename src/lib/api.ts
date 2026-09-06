@@ -456,7 +456,14 @@ export type PromoConfig = {
   bannerEnabled: boolean;
   bannerText: string | null;
   heroSaleLabel?: string | null;
+  heroTitle?: string | null;
+  heroSubtitle?: string | null;
+  heroCouponCode?: string | null;
+  heroEndsInLabel?: string | null;
   heroBackgroundImage?: string | null;
+  saleSectionEyebrow?: string | null;
+  saleSectionTitle?: string | null;
+  saleSectionSubtitle?: string | null;
 };
 
 export async function getPromo(): Promise<PromoConfig> {
