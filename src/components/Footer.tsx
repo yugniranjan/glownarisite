@@ -32,14 +32,14 @@ export default function Footer() {
       <div className="site-container py-9 sm:py-11">
         <div className="grid gap-9 lg:grid-cols-[1.3fr_0.8fr_0.8fr_0.8fr] lg:gap-12">
           <div>
-            <Link href="/" className="inline-flex h-20 w-[210px] items-center justify-start overflow-hidden">
+            <Link href="/" className="inline-flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border border-accent/20 bg-bg-elev-1">
               <Image
-                src="/glownari-logo-full.png"
+                src="/glownari-logo.png"
                 alt="Glownari"
-                width={360}
-                height={160}
+                width={240}
+                height={240}
                 loading="eager"
-                className="h-full w-full object-contain"
+                className="h-full w-full object-cover"
               />
             </Link>
             <p className="mt-3 max-w-sm text-sm leading-6 text-text-muted">

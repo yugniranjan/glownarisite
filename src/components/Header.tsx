@@ -72,19 +72,19 @@ export default function Header() {
 
           <Link href="/" className="flex shrink-0 items-center">
             <span
-              className={`inline-flex items-center justify-center overflow-hidden border border-accent/45 bg-bg-elev-1 px-3 transition-all duration-300 ${
+              className={`inline-flex items-center justify-center overflow-hidden rounded-full border border-accent/25 bg-bg-elev-1 shadow-sm transition-all duration-300 ${
                 scrolled
-                  ? 'h-10 w-12'
-                  : 'h-11 w-[176px] sm:h-[52px] sm:w-[236px] lg:w-[260px]'
+                  ? 'h-10 w-10'
+                  : 'h-12 w-12 sm:h-14 sm:w-14 lg:h-16 lg:w-16'
               }`}
             >
               <Image
-                src={scrolled ? '/glownari-mark.png' : '/glownari-header-logo.png'}
+                src="/glownari-logo.png"
                 alt="Glownari"
-                width={scrolled ? 96 : 620}
-                height={scrolled ? 96 : 160}
+                width={180}
+                height={180}
                 priority
-                className="h-full w-full object-contain"
+                className="h-full w-full object-cover"
               />
             </span>
           </Link>
@@ -165,14 +165,14 @@ export default function Header() {
             aria-modal="true"
           >
             <div className="flex items-center justify-between border-b border-border px-4 py-3">
-              <Link href="/" className="inline-flex h-11 w-[190px] items-center justify-start overflow-hidden">
+              <Link href="/" className="inline-flex h-16 w-16 items-center justify-center overflow-hidden rounded-full border border-accent/25 bg-bg-elev-1">
                 <Image
-                  src="/glownari-header-logo.png"
+                  src="/glownari-logo.png"
                   alt="Glownari"
-                  width={620}
-                  height={160}
+                  width={180}
+                  height={180}
                   priority
-                  className="h-full w-full object-contain"
+                  className="h-full w-full object-cover"
                 />
               </Link>
               <button
