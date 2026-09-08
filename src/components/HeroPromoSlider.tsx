@@ -34,8 +34,8 @@ export default function HeroPromoSlider({ banners }: { banners: Banner[] }) {
     <section className="overflow-hidden bg-bg-elev-1 py-3 sm:py-4">
       <div className="site-container relative">
         <div
-          className="relative h-[180px] overflow-hidden rounded-lg sm:h-[215px] lg:h-[228px]"
-          style={{ '--slide-offset': 'min(88vw, 784px)' } as CSSProperties & Record<string, string>}
+          className="relative aspect-[2098/749] max-h-[360px] min-h-[150px] overflow-hidden rounded-lg sm:min-h-[215px]"
+          style={{ '--slide-offset': 'min(100vw, 1180px)' } as CSSProperties & Record<string, string>}
         >
           {banners.map((banner, index) => {
             const offset = ((index - active + total + Math.floor(total / 2)) % total) - Math.floor(total / 2);
@@ -48,7 +48,7 @@ export default function HeroPromoSlider({ banners }: { banners: Banner[] }) {
                 href={href}
                 aria-hidden={!isVisible}
                 tabIndex={isVisible ? 0 : -1}
-                className={`absolute left-1/2 top-0 h-full w-[88vw] max-w-[780px] overflow-hidden rounded-lg border border-border bg-[#171519] shadow-card transition-all duration-500 ease-out sm:w-[74vw] lg:w-[760px] ${
+                className={`absolute left-1/2 top-0 h-full w-full overflow-hidden rounded-lg border border-border bg-bg-elev-3 shadow-card transition-all duration-500 ease-out ${
                   isActive ? 'z-20 opacity-100' : isVisible ? 'z-10 opacity-95' : 'z-0 opacity-0'
                 }`}
                 style={{
@@ -56,27 +56,7 @@ export default function HeroPromoSlider({ banners }: { banners: Banner[] }) {
                   pointerEvents: isVisible ? 'auto' : 'none',
                 }}
               >
-                <img src={banner.image} alt="" className="absolute inset-0 h-full w-full object-cover" />
-                <div className="absolute inset-y-0 left-0 w-[66%] bg-black/65 sm:w-[60%]" />
-                <div className="relative z-10 flex h-full w-[68%] flex-col justify-center p-5 text-white sm:w-[62%] sm:p-7">
-                  {banner.brand && <div className="text-sm font-black uppercase tracking-wide text-white/90">{banner.brand}</div>}
-                  {banner.eyebrow && <div className="mt-2 text-xs font-bold text-white/75 sm:text-sm">{banner.eyebrow}</div>}
-                  <h2 className="font-display mt-1 max-w-[15ch] text-2xl leading-tight sm:text-4xl">
-                    {banner.title}
-                  </h2>
-                  {banner.priceLabel && <div className="mt-1 text-xl font-black text-white sm:text-2xl">{banner.priceLabel}</div>}
-                  {banner.subtitle && (
-                    <p className="mt-1.5 line-clamp-2 max-w-md text-xs font-medium leading-5 text-white/75 sm:text-sm">
-                      {banner.subtitle}
-                    </p>
-                  )}
-                  <span className="mt-3 inline-flex w-fit rounded bg-white px-3 py-2 text-xs font-black text-slate-900">
-                    Shop now
-                  </span>
-                </div>
-                <span className="absolute bottom-3 right-3 rounded bg-black/40 px-2 py-0.5 text-[10px] font-bold text-white/80">
-                  AD
-                </span>
+                <img src={banner.image} alt={banner.title || 'Glownari banner'} className="absolute inset-0 h-full w-full object-cover" />
               </Link>
             );
           })}
