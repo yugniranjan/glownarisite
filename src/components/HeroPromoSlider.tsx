@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import type { CSSProperties } from 'react';
 import type { GlownariBanner } from '@/lib/api';
 
 type Banner = GlownariBanner;
@@ -29,38 +28,23 @@ export default function HeroPromoSlider({ banners }: { banners: Banner[] }) {
   }
 
   if (total === 0) return null;
+  const activeBanner = banners[active] || banners[0];
+  const href = activeBanner.product?.slug ? `/products/${activeBanner.product.slug}` : activeBanner.href;
 
   return (
     <section className="overflow-hidden bg-bg-elev-1 py-3 sm:py-4">
       <div className="site-container relative">
-        <div
-          className="relative aspect-[2098/749] max-h-[360px] min-h-[150px] overflow-hidden rounded-lg sm:min-h-[215px]"
-          style={{ '--slide-offset': 'min(100vw, 1180px)' } as CSSProperties & Record<string, string>}
+        <Link
+          key={activeBanner.id || activeBanner.title}
+          href={href}
+          className="relative block aspect-[2098/749] w-full overflow-hidden rounded-lg border border-border bg-bg-elev-3 shadow-card"
         >
-          {banners.map((banner, index) => {
-            const offset = ((index - active + total + Math.floor(total / 2)) % total) - Math.floor(total / 2);
-            const isActive = offset === 0;
-            const isVisible = Math.abs(offset) <= 1;
-            const href = banner.product?.slug ? `/products/${banner.product.slug}` : banner.href;
-            return (
-              <Link
-                key={banner.title}
-                href={href}
-                aria-hidden={!isVisible}
-                tabIndex={isVisible ? 0 : -1}
-                className={`absolute left-1/2 top-0 h-full w-full overflow-hidden rounded-lg border border-border bg-bg-elev-3 shadow-card transition-all duration-500 ease-out ${
-                  isActive ? 'z-20 opacity-100' : isVisible ? 'z-10 opacity-95' : 'z-0 opacity-0'
-                }`}
-                style={{
-                  transform: `translateX(calc(-50% + (${offset} * var(--slide-offset)))) scale(${isActive ? 1 : 0.96})`,
-                  pointerEvents: isVisible ? 'auto' : 'none',
-                }}
-              >
-                <img src={banner.image} alt={banner.title || 'Glownari banner'} className="absolute inset-0 h-full w-full object-cover" />
-              </Link>
-            );
-          })}
-        </div>
+          <img
+            src={activeBanner.image}
+            alt={activeBanner.title || 'Glownari banner'}
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+        </Link>
 
         {total > 1 && (
           <>
