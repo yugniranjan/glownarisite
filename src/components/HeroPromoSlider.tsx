@@ -28,23 +28,34 @@ export default function HeroPromoSlider({ banners }: { banners: Banner[] }) {
   }
 
   if (total === 0) return null;
-  const activeBanner = banners[active] || banners[0];
-  const href = activeBanner.product?.slug ? `/products/${activeBanner.product.slug}` : activeBanner.href;
 
   return (
     <section className="overflow-hidden bg-bg-elev-1 py-3 sm:py-4">
       <div className="site-container relative">
-        <Link
-          key={activeBanner.id || activeBanner.title}
-          href={href}
-          className="relative block aspect-[2098/749] w-full overflow-hidden rounded-lg border border-border bg-bg-elev-3 shadow-card"
-        >
-          <img
-            src={activeBanner.image}
-            alt={activeBanner.title || 'Glownari banner'}
-            className="absolute inset-0 h-full w-full object-cover"
-          />
-        </Link>
+        <div className="aspect-[2098/749] w-full overflow-hidden rounded-lg border border-border bg-bg-elev-3 shadow-card">
+          <div
+            className="flex h-full transition-transform duration-700 ease-out"
+            style={{ transform: `translateX(-${active * 100}%)` }}
+          >
+            {banners.map((banner) => {
+              const href = banner.product?.slug ? `/products/${banner.product.slug}` : banner.href;
+              return (
+                <Link
+                  key={banner.id || banner.title}
+                  href={href}
+                  className="relative block h-full min-w-full"
+                  aria-label={banner.title || 'Open Glownari banner'}
+                >
+                  <img
+                    src={banner.image}
+                    alt={banner.title || 'Glownari banner'}
+                    className="absolute inset-0 h-full w-full object-cover"
+                  />
+                </Link>
+              );
+            })}
+          </div>
+        </div>
 
         {total > 1 && (
           <>
