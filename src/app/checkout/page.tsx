@@ -6,6 +6,7 @@ import { Suspense, useEffect, useRef, useState } from 'react';
 import { ArrowLeft, CheckCircle2, CreditCard, Loader2, Lock, MapPin, MessageCircle, ShieldCheck, Tag, UserRound, X } from 'lucide-react';
 import {
   createRazorpayOrder,
+  cancelCheckout,
   formatMoney,
   getPaymentConfig,
   getProduct,
@@ -16,7 +17,7 @@ import {
   type GlownariProduct,
 } from '@/lib/api';
 import { trackGlownari } from '@/lib/analytics';
-import { AUTH_REQUIRED, cartSubtotal, clearCart, fetchCart, removeFromCart, type CartItem } from '@/lib/cart';
+import { AUTH_REQUIRED, cartSubtotal, fetchCart, type CartItem } from '@/lib/cart';
 import { getAuthToken, getStoredUser } from '@/lib/auth';
 import PageLoader from '@/components/PageLoader';
 import ModernSelect from '@/components/ModernSelect';
@@ -123,6 +124,7 @@ function CheckoutInner() {
   const [quantity, setQuantity] = useState(initialQty);
   const [botTrap, setBotTrap] = useState('');
   const [checkoutStartedAt, setCheckoutStartedAt] = useState(() => Date.now());
+  const checkoutKey = useRef<string>('');
   const [errors, setErrors] = useState<Errors>({});
   const [error, setError] = useState<string | null>(null);
   const [razorpayKeyId, setRazorpayKeyId] = useState<string | null>(null);
@@ -278,7 +280,7 @@ function CheckoutInner() {
       return;
     }
     if (!razorpayKeyId) {
-      setError('Razorpay is not configured yet. Add RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET in the API environment.');
+      setError('Online payment is temporarily unavailable. Please contact support.');
       return;
     }
 
@@ -300,6 +302,7 @@ function CheckoutInner() {
     try {
       const user = getStoredUser();
       const created = await createRazorpayOrder({
+        checkoutKey: checkoutKey.current || (checkoutKey.current = crypto.randomUUID()),
         customerName: result.normalized.name,
         phone: result.normalized.phone,
         email: user?.email || null,
@@ -355,8 +358,7 @@ function CheckoutInner() {
               status: verified.status,
               paymentId: response.razorpay_payment_id,
             });
-            if (cartMode) clearCart().catch(() => undefined);
-            else removeFromCart(product!.id).catch(() => undefined);
+            fetchCart(true).catch(() => undefined);
             trackGlownari({
               eventType: 'order_submitted',
               productId: cartMode ? cartItems[0]?.id : product!.id,
@@ -367,13 +369,20 @@ function CheckoutInner() {
             });
             window.scrollTo({ top: 0, behavior: 'smooth' });
           } catch (err: any) {
-            setError(err?.message || 'Payment captured, but verification failed. Contact support with your payment ID.');
+            setError(`${err?.message || 'Payment verification is pending.'} Payment ID: ${response.razorpay_payment_id}. Check My orders before paying again.`);
           } finally {
             setSubmitting(false);
           }
         },
         modal: {
-          ondismiss: () => setSubmitting(false),
+          ondismiss: async () => {
+            try {
+              await cancelCheckout(created.id);
+              checkoutKey.current = '';
+              setCheckoutStartedAt(Date.now());
+            } catch (error: any) { setError(error.message); }
+            setSubmitting(false);
+          },
         },
       });
       checkout.open();
@@ -431,7 +440,7 @@ function CheckoutInner() {
           </div>
           <h1 className="mt-5 text-2xl font-bold sm:text-3xl">Payment successful</h1>
           <p className="mt-2 text-sm text-text-muted sm:text-base">
-            Your order is confirmed. We will process delivery and share updates on WhatsApp.
+            Your payment is recorded. Check My orders for delivery and payment updates.
           </p>
           <div className="mt-5 rounded-lg border border-border bg-bg-elev-1 p-4 text-left">
             <Row label="Order number" value={<span className="font-mono">{order.orderNumber}</span>} />
@@ -514,7 +523,7 @@ function CheckoutInner() {
                 <ModernSelect
                   value={String(quantity)}
                   onChange={(value) => setQuantity(Number(value))}
-                  options={[1, 2, 3, 4, 5].map((n) => ({ value: String(n), label: `${n}`, description: `${n} item${n > 1 ? 's' : ''}` }))}
+                  options={[1, 2, 3, 4, 5].filter((n) => product!.stockQuantity == null || n <= product!.stockQuantity).map((n) => ({ value: String(n), label: `${n}`, description: `${n} item${n > 1 ? 's' : ''}` }))}
                 />
               </Field>
             )}

@@ -6,7 +6,7 @@ import ProductCard from '@/components/ProductCard';
 import CategoryBadge from '@/components/CategoryBadge';
 import { getCategories, getProducts, getSocialProof } from '@/lib/api';
 
-type CategoryPageProps = { params: Promise<{ slug: string }> };
+type CategoryPageProps = { params: Promise<{ slug: string }>; searchParams: Promise<{ page?: string }> };
 
 export async function generateMetadata({ params }: CategoryPageProps): Promise<Metadata> {
   const { slug } = await params;
@@ -19,27 +19,23 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
   };
 }
 
-const HUES = ['#7c1d1d', '#1e3a8a', '#0f3b3b', '#581c87', '#7c2d12', '#831843'];
-
-export default async function CategoryPage({ params }: CategoryPageProps) {
+export default async function CategoryPage({ params, searchParams }: CategoryPageProps) {
   const { slug } = await params;
+  const query = await searchParams;
+  const page = Math.max(1, Math.min(1000, parseInt(query.page || '1', 10) || 1));
   const [categories, products, proof] = await Promise.all([
     getCategories(),
-    getProducts({ categorySlug: slug, take: 36 }),
+    getProducts({ categorySlug: slug, take: 24, skip: (page - 1) * 24 }),
     getSocialProof(),
   ]);
   const category = categories.find((c) => c.slug === slug);
   if (!category) notFound();
 
-  const idx = categories.findIndex((c) => c.id === category.id);
-  const hue = HUES[idx % HUES.length] || HUES[0];
-
   return (
     <>
       {/* ─────── Hero ─────── */}
       <section
-        className="relative py-8 sm:py-12"
-        style={{ background: `linear-gradient(135deg, ${hue}99, transparent 60%), var(--bg-elev-1)` }}
+        className="relative bg-bg-elev-1 py-6 sm:py-8"
       >
         <div className="site-container">
           <Link
@@ -55,10 +51,10 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
               {category.badge && (
                 <CategoryBadge label={category.badge} color={category.badgeColor} className="mb-2" />
               )}
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-white/85">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-accent">
                 Category
               </p>
-              <h1 className="mt-1 text-3xl font-bold leading-tight tracking-tight sm:text-5xl">
+              <h1 className="font-display mt-1 text-3xl leading-tight">
                 {category.name}
               </h1>
               {category.description && (
@@ -76,7 +72,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
       </section>
 
       {/* ─────── Filter chips (horizontal scroll on mobile, wrap on desktop) ─────── */}
-      <section className="border-y border-border bg-bg sticky top-16 z-20">
+      <section className="sticky top-16 z-20 border-y border-border bg-bg sm:top-[76px] lg:top-[148px]">
         <div className="site-container">
           <div className="no-scrollbar flex snap-x snap-mandatory gap-2 overflow-x-auto py-3.5 sm:flex-wrap sm:overflow-visible">
             <Chip href="/" active={false}>All</Chip>
@@ -92,11 +88,11 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
       {/* ─────── Products grid ─────── */}
       <section className="site-container page-content">
         {products.items.length === 0 ? (
-          <div className="rounded-xl border border-border bg-bg-elev-2 p-10 text-center text-text-muted">
-            No products in this category yet. Try a different category from above.
+          <div role={products.error ? 'alert' : undefined} className="py-10 text-center text-text-muted">
+            {products.error || 'No products in this category yet.'}
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
             {products.items.map((p) => (
               <ProductCard
                 key={p.id}
@@ -107,6 +103,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
             ))}
           </div>
         )}
+        {products.total > 24 && <nav aria-label="Category pages" className="mt-6 flex items-center justify-center gap-5">{page > 1 && <Link className="btn-ghost" href={`/category/${slug}?page=${page - 1}`}>Previous</Link>}<span>{page} / {Math.ceil(products.total / 24)}</span>{page * 24 < products.total && <Link className="btn-ghost" href={`/category/${slug}?page=${page + 1}`}>Next</Link>}</nav>}
       </section>
     </>
   );

@@ -271,7 +271,7 @@ export default function CartPage() {
           <div className="mt-4 space-y-3 border-t border-border pt-4 text-sm">
             <Row label={`Price (${totalItems} items)`} value={formatMoney(mrpTotal, currency)} />
             <Row label="Discount" value={savings ? `-${formatMoney(savings, currency)}` : formatMoney(0, currency)} tone="success" />
-            <Row label="Delivery" value="Calculated after order" />
+            <Row label="Delivery" value="Free" />
             <div className="border-t border-border pt-3">
               <Row label="Subtotal" value={formatMoney(subtotal, currency)} strong />
             </div>

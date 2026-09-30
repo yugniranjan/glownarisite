@@ -3,6 +3,7 @@
 import { API_URL } from '@/lib/api';
 
 export type StoreUser = {
+  accountNumber?: number;
   id: string;
   email: string;
   name: string | null;

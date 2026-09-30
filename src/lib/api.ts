@@ -17,6 +17,7 @@ export interface GlownariProduct {
   shortDescription: string | null;
   description: string | null;
   coverImage: string | null;
+  images?: string[];
   badge: string | null;
   serviceType: string | null;
   accountType: string | null;
@@ -62,6 +63,7 @@ export interface GlownariTestimonial {
 }
 
 export interface Paginated<T> {
+  error?: string;
   items: T[];
   total: number;
   take: number;
@@ -100,6 +102,13 @@ export interface GlownariOrderItem {
 }
 
 export interface GlownariCustomerOrder {
+  discountCents?: number;
+  couponCode?: string | null;
+  courierName?: string | null;
+  trackingNumber?: string | null;
+  trackingUrl?: string | null;
+  refundStatus?: string | null;
+  refundedCents?: number;
   id: string;
   orderNumber: string;
   customerName: string;
@@ -141,192 +150,16 @@ export type GlownariAddressInput = {
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
 
-const demoCategories: GlownariCategory[] = [
-  { id: 'earrings', name: 'Earrings', slug: 'earrings', description: 'Elegant earrings for daily wear and celebrations', image: 'https://images.unsplash.com/photo-1630019852942-f89202989a59?w=800&auto=format&fit=crop&q=85', badge: 'Popular', badgeColor: 'pink', isActive: true, sortOrder: 1 },
-  { id: 'rings', name: 'Rings', slug: 'rings', description: 'Sparkling rings for gifting and self-love', image: 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=800&auto=format&fit=crop&q=85', badge: 'Sale', badgeColor: 'red', isActive: true, sortOrder: 2 },
-];
 
-export const demoProducts: GlownariProduct[] = [
-  {
-    id: 'rose-gold-drop-earrings',
-    name: 'Rose Gold Drop Earrings',
-    slug: 'rose-gold-drop-earrings',
-    shortDescription: 'A soft rose gold drop pair with a delicate sparkle.',
-    description: 'Elegant drop earrings made for celebrations, gifting and everyday polish.',
-    coverImage: 'https://images.unsplash.com/photo-1630019852942-f89202989a59?w=1400&auto=format&fit=crop&q=85',
-    badge: 'Best seller',
-    serviceType: 'Earrings',
-    accountType: 'In stock',
-    durationDays: null,
-    priceCents: 49900,
-    compareAtCents: 99900,
-    currency: 'INR',
-    stockQuantity: 18,
-    isFeatured: true,
-    isActive: true,
-    metaTitle: null,
-    metaDescription: null,
-    categoryId: 'earrings',
-    category: demoCategories[0],
-  },
-  {
-    id: 'silver-jhumka-earrings',
-    name: 'Silver Jhumka Earrings',
-    slug: 'silver-jhumka-earrings',
-    shortDescription: 'Statement silver jhumkas with a festive finish.',
-    description: 'Oxidised-style jhumka earrings with pearl details and occasion-ready shine.',
-    coverImage: 'https://images.unsplash.com/photo-1617038260897-41a1f14a8ca0?w=1400&auto=format&fit=crop&q=85',
-    badge: 'Popular',
-    serviceType: 'Earrings',
-    accountType: 'Ready to ship',
-    durationDays: null,
-    priceCents: 59900,
-    compareAtCents: 119900,
-    currency: 'INR',
-    stockQuantity: 24,
-    isFeatured: true,
-    isActive: true,
-    metaTitle: null,
-    metaDescription: null,
-    categoryId: 'earrings',
-    category: demoCategories[0],
-  },
-  {
-    id: 'gold-hoop-earrings',
-    name: 'Gold Hoop Earrings',
-    slug: 'gold-hoop-earrings',
-    shortDescription: 'Slim gold hoops lined with crystal accents.',
-    description: 'Lightweight hoops with clean gold plating and soft sparkle.',
-    coverImage: 'https://images.unsplash.com/photo-1615655114865-4cc92168b8aa?w=1400&auto=format&fit=crop&q=85',
-    badge: 'New',
-    serviceType: 'Earrings',
-    accountType: 'In stock',
-    durationDays: null,
-    priceCents: 39900,
-    compareAtCents: 79900,
-    currency: 'INR',
-    stockQuantity: 30,
-    isFeatured: true,
-    isActive: true,
-    metaTitle: null,
-    metaDescription: null,
-    categoryId: 'earrings',
-    category: demoCategories[0],
-  },
-  {
-    id: 'pearl-drop-earrings',
-    name: 'Pearl Drop Earrings',
-    slug: 'pearl-drop-earrings',
-    shortDescription: 'Pearl drops with a graceful floral gold stem.',
-    description: 'A refined pearl pair designed for gifting, workwear, and evening styling.',
-    coverImage: 'https://images.unsplash.com/photo-1611107683227-e9060eccd846?w=1400&auto=format&fit=crop&q=85',
-    badge: 'Gift pick',
-    serviceType: 'Earrings',
-    accountType: 'Ready to ship',
-    durationDays: null,
-    priceCents: 44900,
-    compareAtCents: 89900,
-    currency: 'INR',
-    stockQuantity: 15,
-    isFeatured: true,
-    isActive: true,
-    metaTitle: null,
-    metaDescription: null,
-    categoryId: 'earrings',
-    category: demoCategories[0],
-  },
-  {
-    id: 'classic-solitaire-ring',
-    name: 'Classic Solitaire Ring',
-    slug: 'classic-solitaire-ring',
-    shortDescription: 'A timeless solitaire ring with a bright centre stone.',
-    description: 'Classic solitaire styling with a rose gold finish and gift-ready sparkle.',
-    coverImage: 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=1400&auto=format&fit=crop&q=85',
-    badge: 'Sale',
-    serviceType: 'Rings',
-    accountType: 'In stock',
-    durationDays: null,
-    priceCents: 69900,
-    compareAtCents: 139900,
-    currency: 'INR',
-    stockQuantity: 32,
-    isFeatured: true,
-    isActive: true,
-    metaTitle: null,
-    metaDescription: null,
-    categoryId: 'rings',
-    category: demoCategories[1],
-  },
-  {
-    id: 'twist-gold-ring',
-    name: 'Twist Gold Ring',
-    slug: 'twist-gold-ring',
-    shortDescription: 'A polished twist band with subtle stone detail.',
-    description: 'Modern gold ring with a comfortable band and elegant crossover setting.',
-    coverImage: 'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=1400&auto=format&fit=crop&q=85',
-    badge: 'Trending',
-    serviceType: 'Rings',
-    accountType: 'In stock',
-    durationDays: null,
-    priceCents: 54900,
-    compareAtCents: 109900,
-    currency: 'INR',
-    stockQuantity: 22,
-    isFeatured: true,
-    isActive: true,
-    metaTitle: null,
-    metaDescription: null,
-    categoryId: 'rings',
-    category: demoCategories[1],
-  },
-  {
-    id: 'heart-solitaire-ring',
-    name: 'Heart Solitaire Ring',
-    slug: 'heart-solitaire-ring',
-    shortDescription: 'A heart-shaped solitaire framed with crystal shine.',
-    description: 'Sweet and sparkling heart ring for anniversaries, gifts, and daily wear.',
-    coverImage: 'https://images.unsplash.com/photo-1603561596112-db1d3c7c90d8?w=1400&auto=format&fit=crop&q=85',
-    badge: 'New',
-    serviceType: 'Rings',
-    accountType: 'Ready to ship',
-    durationDays: null,
-    priceCents: 59900,
-    compareAtCents: 119900,
-    currency: 'INR',
-    stockQuantity: 10,
-    isFeatured: true,
-    isActive: true,
-    metaTitle: null,
-    metaDescription: null,
-    categoryId: 'rings',
-    category: demoCategories[1],
-  },
-  {
-    id: 'rose-gold-eternity-ring',
-    name: 'Rose Gold Eternity Ring',
-    slug: 'rose-gold-eternity-ring',
-    shortDescription: 'Full-stone eternity band in a soft rose gold tone.',
-    description: 'A delicate eternity band with continuous sparkle and a premium finish.',
-    coverImage: 'https://images.unsplash.com/photo-1602751584552-8ba73aad10e1?w=1400&auto=format&fit=crop&q=85',
-    badge: 'Deal',
-    serviceType: 'Rings',
-    accountType: 'Ready to ship',
-    durationDays: null,
-    priceCents: 64900,
-    compareAtCents: 129900,
-    currency: 'INR',
-    stockQuantity: 28,
-    isFeatured: true,
-    isActive: true,
-    metaTitle: null,
-    metaDescription: null,
-    categoryId: 'rings',
-    category: demoCategories[1],
-  },
-];
+function apiBaseUrl() {
+  if (typeof window !== 'undefined' || !API_URL.startsWith('/')) return API_URL;
+  const host = process.env.VERCEL_PROJECT_PRODUCTION_URL || process.env.VERCEL_URL;
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || (host ? `https://${host}` : 'http://localhost:3000');
+  return new URL(API_URL, siteUrl).toString().replace(/\/$/, '');
+}
 
-async function fetchJson<T>(path: string): Promise<T> {
-  const res = await fetch(`${API_URL}${path}`, { next: { revalidate: 60 } });
+async function fetchJson<T>(path: string, fresh = false): Promise<T> {
+  const res = await fetch(`${apiBaseUrl()}${path}`, fresh ? { cache: 'no-store' } : { next: { revalidate: 60 } });
   if (!res.ok) throw new Error(`Request failed: ${res.status}`);
   return res.json() as Promise<T>;
 }
@@ -334,47 +167,32 @@ async function fetchJson<T>(path: string): Promise<T> {
 export async function getCategories() {
   try {
     const categories = await fetchJson<GlownariCategory[]>('/glownari/categories');
-    return categories.length > 0 ? categories : demoCategories;
+    return categories;
   } catch {
-    return demoCategories;
+    return [];
   }
 }
 
-export async function getProducts(params?: { categorySlug?: string; featured?: boolean; take?: number; q?: string }) {
+export async function getProducts(params?: { categorySlug?: string; featured?: boolean; take?: number; skip?: number; q?: string; sort?: string }) {
   const q = new URLSearchParams();
   if (params?.categorySlug) q.set('categorySlug', params.categorySlug);
   if (params?.featured) q.set('featured', 'true');
   if (params?.take) q.set('take', String(params.take));
+  if (params?.skip) q.set('skip', String(params.skip));
   if (params?.q) q.set('q', params.q);
+  if (params?.sort === 'price-asc') q.set('sort', params.sort);
 
   try {
-    const data = await fetchJson<Paginated<GlownariProduct>>(`/glownari/products${q.toString() ? `?${q}` : ''}`);
-    return data.items.length > 0 ? data : fallbackProducts(params);
+    const data = await fetchJson<Paginated<GlownariProduct>>(`/glownari/products${q.toString() ? `?${q}` : ''}`, true);
+    return data;
   } catch {
-    return fallbackProducts(params);
+    return { items: [], total: 0, take: params?.take || 20, skip: params?.skip || 0, error: 'Products could not load. Please try again shortly.' };
   }
-}
-
-function fallbackProducts(params?: { categorySlug?: string; featured?: boolean; take?: number; q?: string }): Paginated<GlownariProduct> {
-  const query = params?.q?.trim().toLowerCase();
-  let items = demoProducts;
-  if (params?.categorySlug) items = items.filter((product) => product.category.slug === params.categorySlug);
-  if (params?.featured) items = items.filter((product) => product.isFeatured);
-  if (query) {
-    items = items.filter((product) =>
-      [product.name, product.shortDescription, product.serviceType, product.category?.name]
-        .filter(Boolean)
-        .some((value) => value!.toLowerCase().includes(query)),
-    );
-  }
-  const total = items.length;
-  if (params?.take) items = items.slice(0, params.take);
-  return { items, total, take: params?.take || items.length, skip: 0 };
 }
 
 export async function getProduct(slug: string) {
   try {
-    return await fetchJson<GlownariProduct>(`/glownari/products/${slug}`);
+    return await fetchJson<GlownariProduct>(`/glownari/products/${slug}`, true);
   } catch {
     return null;
   }
@@ -413,10 +231,10 @@ export interface SocialProof {
 }
 
 const SOCIAL_PROOF_FALLBACK: SocialProof = {
-  rating: 4.8,
-  reviews: 500,
-  orders: 1000,
-  activationLabel: 'Under 10 min activation',
+  rating: 0,
+  reviews: 0,
+  orders: 0,
+  activationLabel: '',
 };
 
 export async function getSocialProof(): Promise<SocialProof> {
@@ -439,18 +257,16 @@ export function plusCount(n: number) {
 }
 
 type PaymentConfig = {
-  mode: 'razorpay' | 'utr';
+  mode: 'razorpay' | 'unavailable';
   onlineGatewayEnabled: boolean;
   razorpayKeyId?: string | null;
-  upiId?: string | null;
-  upiName?: string | null;
 };
 
 export async function getPaymentConfig(): Promise<PaymentConfig> {
   try {
     return await fetchJson<PaymentConfig>('/glownari/payment-config');
   } catch {
-    return { mode: 'razorpay', onlineGatewayEnabled: true, razorpayKeyId: null };
+    return { mode: 'unavailable', onlineGatewayEnabled: false, razorpayKeyId: null };
   }
 }
 
@@ -471,11 +287,11 @@ export type PromoConfig = {
 
 export async function getPromo(): Promise<PromoConfig> {
   try {
-    const res = await fetch(`${API_URL}/glownari/promo`, { next: { revalidate: 30 } });
+    const res = await fetch(`${apiBaseUrl()}/glownari/promo`, { cache: 'no-store' });
     if (!res.ok) throw new Error('promo failed');
     return await res.json();
   } catch {
-    return { bannerEnabled: false, bannerText: null, festivalEnabled: true, heroSaleLabel: null, heroBackgroundImage: null };
+    return { bannerEnabled: false, bannerText: null, festivalEnabled: false, heroSaleLabel: null, heroBackgroundImage: null };
   }
 }
 
@@ -497,9 +313,10 @@ export async function previewCoupon(body: {
   email?: string;
 }): Promise<CouponPreview> {
   try {
+    const { getAuthToken } = await import('@/lib/auth');
     const res = await fetch(`${API_URL}/glownari/coupon/preview`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getAuthToken()}` },
       body: JSON.stringify(body),
     });
     const data = await res.json();
@@ -511,6 +328,7 @@ export async function previewCoupon(body: {
 }
 
 export async function createRazorpayOrder(body: {
+  checkoutKey: string;
   customerName: string;
   phone: string;
   email?: string | null;
@@ -529,14 +347,18 @@ export async function createRazorpayOrder(body: {
   checkoutStartedAt: number;
   botTrap?: string | null;
 }) {
+  const { getAuthToken } = await import('@/lib/auth');
+  const token = getAuthToken();
+  if (!token) throw new Error('Login required');
   const res = await fetch(`${API_URL}/glownari/orders`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
     body: JSON.stringify(body),
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data?.error || 'Order failed');
   return data as {
+    id: string;
     orderNumber: string;
     totalCents: number;
     currency: string;
@@ -565,14 +387,25 @@ export async function verifyRazorpayPayment(body: {
   razorpayPaymentId: string;
   razorpaySignature: string;
 }) {
+  const { getAuthToken } = await import('@/lib/auth');
+  const token = getAuthToken();
+  if (!token) throw new Error('Login required');
   const res = await fetch(`${API_URL}/glownari/orders/verify-payment`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
     body: JSON.stringify(body),
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data?.error || 'Payment verification failed');
   return data;
+}
+
+export async function cancelCheckout(id: string) {
+  const { getAuthToken } = await import('@/lib/auth');
+  const res = await fetch(`${API_URL}/glownari/orders/${encodeURIComponent(id)}/cancel`, {
+    method: 'POST', headers: { Authorization: `Bearer ${getAuthToken()}` },
+  });
+  if (!res.ok) throw new Error('Could not close checkout. Check your orders before retrying.');
 }
 
 async function addressFetch<T>(path = '', init?: RequestInit): Promise<T> {

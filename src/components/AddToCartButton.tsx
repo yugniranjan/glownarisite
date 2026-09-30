@@ -43,7 +43,7 @@ export default function AddToCartButton({
   return (
     <button
       type="button"
-      disabled={busy}
+      disabled={busy || product.stockQuantity === 0}
       onClick={async () => {
         setBusy(true);
         try {
@@ -75,7 +75,7 @@ export default function AddToCartButton({
       aria-label={`Add ${product.name} to cart`}
     >
       <ShoppingCart className="h-4 w-4" />
-      {!compact && (busy ? 'Adding...' : 'Add to cart')}
+      {!compact && (product.stockQuantity === 0 ? 'Out of stock' : busy ? 'Adding...' : 'Add to cart')}
     </button>
   );
 }

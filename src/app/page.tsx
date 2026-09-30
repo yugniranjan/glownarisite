@@ -1,16 +1,12 @@
 import Link from 'next/link';
 import {
-  BadgePercent,
-  Clock3,
   HeartHandshake,
   MessageCircle,
-  MoveRight,
   Star,
-  Tag,
 } from 'lucide-react';
 import ProductCard from '@/components/ProductCard';
-import PendingLinkButton from '@/components/PendingLinkButton';
 import HeroPromoSlider from '@/components/HeroPromoSlider';
+import FestivalSection from '@/components/FestivalSection';
 import {
   getBanners,
   getCategories,
@@ -18,7 +14,6 @@ import {
   getPromo,
   getSocialProof,
   getTestimonials,
-  type PromoConfig,
   type GlownariCategory,
   type GlownariProduct,
   type GlownariTestimonial,
@@ -31,11 +26,23 @@ const FESTIVAL_BACKGROUND_IMAGE =
   'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=1800&auto=format&fit=crop&q=85';
 const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '918506965129';
 
-export default async function HomePage() {
+export default async function HomePage({ searchParams }: { searchParams: Promise<{ q?: string; featured?: string; sort?: string; page?: string }> }) {
+  const filters = await searchParams;
+  const query = (filters.q || '').trim().slice(0, 120);
+  const catalogueMode = Boolean(query || filters.featured === '1' || filters.sort);
+  const page = Math.max(1, Math.min(1000, parseInt(filters.page || '1', 10) || 1));
+  const catalogueHref = (value: number) => {
+    const params = new URLSearchParams();
+    if (query) params.set('q', query);
+    if (filters.featured === '1') params.set('featured', '1');
+    if (filters.sort) params.set('sort', filters.sort);
+    params.set('page', String(value));
+    return `/?${params}#products`;
+  };
   const [categories, featured, products, promo, proof, banners] = await Promise.all([
     getCategories(),
     getProducts({ featured: true, take: 12 }),
-    getProducts({ take: 40 }),
+    getProducts({ take: 24, skip: (page - 1) * 24, q: query || undefined, featured: filters.featured === '1', sort: filters.sort }),
     getPromo(),
     getSocialProof(),
     getBanners(),
@@ -43,40 +50,31 @@ export default async function HomePage() {
   const testimonials = await getTestimonials();
 
   const allProducts = products.items;
-  const hero = featured.items[0] || allProducts[0];
   const saleProducts = (featured.items.length > 0 ? featured.items : allProducts).slice(0, 8);
-  const festivalEnabled = promo.festivalEnabled !== false;
 
   return (
     <>
-      <HeroPromoSlider banners={banners} />
-      {festivalEnabled && hero && (
-        <Hero
-          product={hero}
-          promo={promo}
-        />
-      )}
-      <CollectionCards categories={categories} products={allProducts} />
+      {!catalogueMode && <>
+        <HeroPromoSlider banners={banners} />
+        <FestivalSection promo={promo} products={saleProducts} rating={proof.rating} reviewCount={proof.reviews} />
+        <CollectionCards categories={categories} products={allProducts} />
+      </>}
 
-      {festivalEnabled && <div id="festival-products" />}
-      {festivalEnabled && saleProducts.length > 0 && <section id="products" className="site-container section-content">
+      <section id="products" className="site-container section-content scroll-mt-20 lg:scroll-mt-[160px]">
         <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="text-[12px] font-black uppercase tracking-[0.18em] text-accent">
-              {promo.saleSectionEyebrow || 'Festival sale'}
+              The collection
             </p>
-            <h2 className="font-display mt-1 text-3xl sm:text-[34px]">{promo.saleSectionTitle || 'Products in this sale'}</h2>
+            <h2 className="font-display mt-1 text-3xl sm:text-[34px]">{query ? `Results for "${query}"` : 'Find your next favourite'}</h2>
             <p className="mt-1.5 max-w-xl text-sm leading-6 text-text-muted sm:text-base">
-              {promo.saleSectionSubtitle || 'Celebrate the season with our most loved earrings and rings.'}
+              {products.error || `${products.total} product${products.total === 1 ? '' : 's'}`}
             </p>
           </div>
-          <Link href="#products" className="inline-flex items-center gap-2 text-sm font-bold text-text hover:text-accent">
-            See all <MoveRight className="h-4 w-4" />
-          </Link>
         </div>
 
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {saleProducts.map((product) => (
+          {allProducts.map((product) => (
             <ProductCard
               key={product.id}
               product={product}
@@ -85,7 +83,9 @@ export default async function HomePage() {
             />
           ))}
         </div>
-      </section>}
+        {!allProducts.length && <p role={products.error ? 'alert' : undefined} className="py-8 text-text-muted">{products.error || (query ? 'No matching products. Try another search.' : 'No products are available right now.')}</p>}
+        {products.total > 24 && <nav aria-label="Product pages" className="mt-7 flex items-center justify-center gap-5">{page > 1 && <Link className="btn-ghost" href={catalogueHref(page - 1)}>Previous</Link>}<span className="text-sm text-text-muted">{page} / {Math.ceil(products.total / 24)}</span>{page * 24 < products.total && <Link className="btn-ghost" href={catalogueHref(page + 1)}>Next</Link>}</nav>}
+      </section>
 
       <PersonalShoppingHelp />
 
@@ -130,87 +130,6 @@ function PersonalShoppingHelp() {
   );
 }
 
-function Hero({
-  product,
-  promo,
-}: {
-  product?: GlownariProduct;
-  promo: PromoConfig;
-}) {
-  if (!product) return null;
-
-  const save = product.compareAtCents ? Math.max(product.compareAtCents - product.priceCents, 0) : 0;
-  const savePct = product.compareAtCents ? Math.round((save / product.compareAtCents) * 100) : 0;
-  const backgroundImage = promo.heroBackgroundImage || FESTIVAL_BACKGROUND_IMAGE;
-  const saleLabel = promo.heroSaleLabel || 'Ring festival sale is live';
-  const title = promo.heroTitle || 'Elegant rings for every moment';
-  const subtitle = promo.heroSubtitle || 'Discover beautifully crafted rings that add sparkle to your style. Premium quality, perfect for gifting or self-love.';
-  const coupon = promo.heroCouponCode || 'RING50';
-  const endsIn = promo.heroEndsInLabel || '2 days';
-
-  return (
-    <section className="bg-bg-elev-1 py-3 sm:py-4">
-      <div className="site-container">
-        <div
-          className="relative min-h-[330px] overflow-hidden rounded-lg border border-border bg-bg-elev-3 bg-cover bg-center shadow-card sm:min-h-[390px]"
-          style={{
-            backgroundImage: `linear-gradient(90deg, rgba(253,250,251,0.98) 0%, rgba(253,250,251,0.92) 38%, rgba(253,250,251,0.20) 63%, rgba(253,250,251,0.02) 100%), url(${backgroundImage})`,
-          }}
-        >
-          <div className="relative z-10 flex min-h-[330px] max-w-[600px] flex-col justify-center px-5 py-7 sm:min-h-[390px] sm:px-9 lg:px-12">
-            <div className="inline-flex w-fit max-w-full items-center gap-2 text-[11px] font-black uppercase tracking-[0.20em] text-accent sm:text-[12px]">
-              <Tag className="h-3.5 w-3.5" />
-              <span className="truncate">{saleLabel}</span>
-            </div>
-            <h1 className="font-display mt-3 max-w-[13ch] text-4xl leading-[1.04] text-text sm:text-5xl lg:text-[58px]">
-              {title}
-            </h1>
-            <p className="mt-4 max-w-xl text-sm font-medium leading-6 text-text-muted sm:text-lg">
-              {subtitle}
-            </p>
-
-            <div className="mt-5 flex max-w-xl flex-wrap items-center gap-x-5 gap-y-3 border-y border-border py-3">
-              <SaleChip icon={BadgePercent} label="Min. off" value={savePct > 0 ? `${savePct}%` : '45%'} />
-              <SaleChip icon={Tag} label="Coupon" value={coupon} />
-              <SaleChip icon={Clock3} label="Ends in" value={endsIn} />
-            </div>
-
-            <div className="mt-5 flex flex-wrap gap-3">
-              <Link href="#festival-products" className="inline-flex h-11 items-center justify-center rounded-md bg-accent px-6 text-sm font-bold text-white shadow-cta transition hover:bg-accent-strong">
-                Shop rings
-              </Link>
-              <PendingLinkButton href={`/products/${product.slug}`} className="inline-flex h-11 items-center justify-center rounded-md border border-border-strong bg-bg-elev-1/80 px-6 text-sm font-bold text-text transition hover:border-accent hover:text-accent">
-                View collection
-              </PendingLinkButton>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function SaleChip({
-  icon: Icon,
-  label,
-  value,
-}: {
-  icon: typeof Tag;
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="flex min-w-[112px] items-center gap-2.5">
-      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
-        <Icon className="h-4 w-4" />
-      </span>
-      <div>
-        <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-text-dim">{label}</div>
-        <div className="text-base font-black text-text">{value}</div>
-      </div>
-    </div>
-  );
-}
 
 function CollectionCards({
   categories,
@@ -233,7 +152,7 @@ function CollectionCards({
   if (visible.length === 0) return null;
 
   return (
-    <section className="bg-bg-elev-1 pb-4">
+    <section id="collections" className="bg-bg-elev-1 pb-4">
       <div className="site-container grid gap-5 lg:grid-cols-2">
         {visible.map((category) => (
           <Link

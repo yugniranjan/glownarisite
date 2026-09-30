@@ -28,14 +28,6 @@ const EMPTY_ADDRESS: GlownariAddressInput = {
   isDefault: false,
 };
 
-function numericAccountId(id: string) {
-  let hash = 0;
-  for (let i = 0; i < id.length; i += 1) {
-    hash = (hash * 31 + id.charCodeAt(i)) % 9000000;
-  }
-  return String(1000000 + hash).padStart(7, '0');
-}
-
 export default function ProfilePage() {
   const [user, setUser] = useState<StoreUser | null>(null);
   const [addresses, setAddresses] = useState<GlownariAddress[]>([]);
@@ -119,6 +111,8 @@ export default function ProfilePage() {
       await refreshAddresses();
       setEditingId(null);
       setForm(EMPTY_ADDRESS);
+      const next = new URLSearchParams(window.location.search).get('next');
+      if (next?.startsWith('/checkout?')) window.location.href = next;
     } catch (err: any) {
       setError(err?.message || 'Could not save address');
     } finally {
@@ -200,7 +194,7 @@ export default function ProfilePage() {
               <Info label="Name" value={user.name || 'Not added'} />
               <Info label="WhatsApp" value={user.whatsappNumber || 'Not added'} />
               <Info label="Email" value={user.email} />
-              <Info label="Account ID" value={numericAccountId(user.id)} mono />
+              <Info label="Account ID" value={user.accountNumber ? String(user.accountNumber) : 'Not assigned'} mono />
             </dl>
           </div>
 

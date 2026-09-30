@@ -17,76 +17,6 @@ const STATUS_META: Record<string, { label: string; className: string; icon: type
   BANNED: { label: 'Banned', className: 'bg-danger-soft text-danger', icon: XCircle },
 };
 
-const DEMO_ORDERS: GlownariCustomerOrder[] = [
-  {
-    id: 'demo-order-1',
-    orderNumber: '2500001',
-    customerName: 'Demo Customer',
-    email: 'demo@glownari.local',
-    phone: '+919876543210',
-    productId: 'everyday-tote',
-    quantity: 1,
-    items: [{
-      productId: 'everyday-tote',
-      name: 'Everyday Tote Bag',
-      coverImage: 'https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=400&auto=format&fit=crop',
-      quantity: 1,
-      priceCents: 59900,
-      lineTotalCents: 59900,
-      currency: 'INR',
-    }],
-    totalCents: 59900,
-    currency: 'INR',
-    status: 'PROCESSING',
-    paymentStatus: 'PAID',
-    paymentMethod: 'RAZORPAY',
-    razorpayPaymentId: 'pay_demo_1001',
-    deliveryAddress: '221, Market Road, Near Metro Gate',
-    deliveryCity: 'Delhi',
-    deliveryState: 'Delhi',
-    deliveryPincode: '110098',
-    deliveryLandmark: 'Blue building',
-    statusReason: 'Demo order for preview',
-    deliveredAt: null,
-    expiresAt: null,
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 4).toISOString(),
-    updatedAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
-  },
-  {
-    id: 'demo-order-2',
-    orderNumber: '2500002',
-    customerName: 'Demo Customer',
-    email: 'demo@glownari.local',
-    phone: '+919876543210',
-    productId: 'beauty-kit',
-    quantity: 2,
-    items: [{
-      productId: 'beauty-kit',
-      name: 'Beauty Essentials Kit',
-      coverImage: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=400&auto=format&fit=crop',
-      quantity: 2,
-      priceCents: 79900,
-      lineTotalCents: 159800,
-      currency: 'INR',
-    }],
-    totalCents: 159800,
-    currency: 'INR',
-    status: 'DELIVERED',
-    paymentStatus: 'PAID',
-    paymentMethod: 'RAZORPAY',
-    razorpayPaymentId: 'pay_demo_1002',
-    deliveryAddress: 'Flat 204, Sunrise Apartments',
-    deliveryCity: 'Jaipur',
-    deliveryState: 'Rajasthan',
-    deliveryPincode: '302001',
-    deliveryLandmark: null,
-    statusReason: null,
-    deliveredAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
-    expiresAt: null,
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 72).toISOString(),
-    updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
-  },
-];
 
 function formatDate(value: string) {
   return new Intl.DateTimeFormat('en-IN', {
@@ -120,11 +50,10 @@ export default function OrdersPage() {
   }, []);
 
   const totalSpend = useMemo(
-    () => (orders.length ? orders : DEMO_ORDERS).filter((order) => order.paymentStatus === 'PAID').reduce((sum, order) => sum + order.totalCents, 0),
+    () => orders.filter((order) => order.paymentStatus === 'PAID').reduce((sum, order) => sum + order.totalCents, 0),
     [orders],
   );
-  const displayOrders = orders.length ? orders : DEMO_ORDERS;
-  const usingDemo = orders.length === 0;
+  const displayOrders = orders;
   const currency = displayOrders[0]?.currency || 'INR';
 
   if (loading) {
@@ -168,9 +97,9 @@ export default function OrdersPage() {
 
       {error && <div className="mb-4 rounded-md border border-danger/40 bg-danger-soft px-3 py-2 text-sm text-danger">{error}</div>}
 
-      {usingDemo && (
-        <div className="mb-4 rounded-lg border border-info/30 bg-info-soft px-4 py-3 text-sm font-semibold text-info">
-          Demo orders shown. Real orders placed from this account will appear here after payment.
+      {!orders.length && !error && (
+        <div className="mb-4 rounded-lg border border-border px-4 py-8 text-center text-sm text-text-muted">
+          No orders yet. <Link className="text-accent" href="/#products">Shop jewellery</Link>
         </div>
       )}
 
@@ -248,6 +177,10 @@ export default function OrdersPage() {
                       <Search className="h-4 w-4" />
                       Track order
                     </Link>
+                    {order.courierName && <p className="mt-3 text-xs text-text-muted">{order.courierName}: {order.trackingNumber}</p>}
+                    {order.trackingUrl?.startsWith('https://') && <a className="btn-ghost mt-2 w-full" href={order.trackingUrl} target="_blank" rel="noopener noreferrer">Track shipment</a>}
+                    {order.refundStatus && <p className="mt-2 text-xs text-text-muted">Refund: {order.refundStatus}</p>}
+                    <Link className="btn-ghost mt-2 w-full" href={`/orders/${order.orderNumber}`}><ReceiptText className="h-4 w-4" />Order receipt</Link>
                   </aside>
                 </div>
               </article>

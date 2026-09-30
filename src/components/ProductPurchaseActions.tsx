@@ -9,8 +9,9 @@ import PendingLinkButton from '@/components/PendingLinkButton';
 
 export default function ProductPurchaseActions({ product }: { product: GlownariProduct }) {
   const [quantity, setQuantity] = useState(1);
-  const maxQuantity = Math.max(1, Math.min(5, product.stockQuantity || 1));
+  const maxQuantity = Math.max(1, Math.min(5, product.stockQuantity ?? 5));
   const checkoutHref = `/checkout?product=${product.slug}&qty=${quantity}`;
+  if (product.stockQuantity === 0) return <p className="mt-6 border-t border-border pt-5 font-semibold text-text-muted">Out of stock</p>;
 
   return (
     <>

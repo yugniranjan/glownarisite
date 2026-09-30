@@ -68,8 +68,8 @@ export function productToCartItem(product: GlownariProduct, quantity = 1): CartI
   };
 }
 
-export async function fetchCart() {
-  return cartFetch('', undefined, false);
+export async function fetchCart(emit = false) {
+  return cartFetch('', undefined, emit);
 }
 
 export async function addToCart(product: GlownariProduct, quantity = 1) {

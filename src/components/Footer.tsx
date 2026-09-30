@@ -32,18 +32,18 @@ export default function Footer() {
       <div className="site-container py-9 sm:py-11">
         <div className="grid gap-9 lg:grid-cols-[1.3fr_0.8fr_0.8fr_0.8fr] lg:gap-12">
           <div>
-            <Link href="/" className="inline-flex h-[200px] w-[200px] items-center justify-center overflow-hidden rounded-full border border-accent/20 bg-bg-elev-1">
+            <Link href="/" className="inline-flex max-w-full items-center justify-center" style={{ width: 200, height: 67 }}>
               <Image
-                src="/glownari-logo.png"
+                src="/glownari-wordmark.png"
                 alt="Glownari"
-                width={400}
-                height={400}
+                width={1600}
+                height={533}
                 loading="eager"
-                className="h-full w-full object-cover"
+                className="h-full w-full object-contain"
               />
             </Link>
             <p className="mt-3 max-w-sm text-sm leading-6 text-text-muted">
-              Thoughtfully curated fashion, beauty, jewellery and everyday essentials, with secure payments and real human support.
+              At Glownari, we bring those little pieces for you. Pieces that glow into a part of your feelings, your days and in the end, your story.
             </p>
             <div className="mt-4 flex items-center gap-2">
               <a
@@ -54,7 +54,7 @@ export default function Footer() {
                 Chat support
               </a>
               <a
-                href="https://www.instagram.com/glownariofficial.in"
+                href="https://www.instagram.com/glownari._?stkn=ZzIwdGJkc3I0N3dz"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Follow Glownari on Instagram"
@@ -70,9 +70,9 @@ export default function Footer() {
               heading="Shop"
               links={[
                 { label: 'All products', href: '/#products' },
-                { label: 'Categories', href: '/#products' },
-                { label: 'Best value', href: '/#trending' },
-                { label: 'Trending', href: '/#trending' },
+                { label: 'Categories', href: '/#collections' },
+                { label: 'Best value', href: '/?sort=price-asc#products' },
+                { label: 'Trending', href: '/?featured=1#products' },
               ]}
             />
             <FooterCol
@@ -80,16 +80,16 @@ export default function Footer() {
               links={[
                 { label: 'Track order', href: '/track-order' },
                 { label: 'Refund policy', href: '/refund-policy' },
-                { label: 'FAQ', href: '/#faq' },
+                { label: 'Shipping policy', href: '/shipping-policy' },
+                { label: 'FAQs', href: '/faqs' },
               ]}
             />
             <FooterCol
               heading="About"
               links={[
-                { label: 'How orders work', href: '/#faq' },
-                { label: 'Why shop here', href: '/#faq' },
-                { label: 'Privacy policy', href: '/refund-policy#privacy-policy' },
-                { label: 'Terms', href: '/terms' },
+                { label: 'About us', href: '/about-us' },
+                { label: 'Privacy policy', href: '/privacy-policy' },
+                { label: 'Term of service', href: '/terms' },
               ]}
             />
           </div>
@@ -103,7 +103,7 @@ export default function Footer() {
             <PaymentMethods />
           </div>
           <p className="max-w-xl leading-relaxed sm:text-right">
-            © {new Date().getFullYear()} Glownari. Product names, images, prices, and categories are managed from your admin panel.
+            © {new Date().getFullYear()} Glownari. All rights reserved.
           </p>
         </div>
       </div>

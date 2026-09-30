@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { GlownariBanner } from '@/lib/api';
 
@@ -13,15 +13,24 @@ function wrap(index: number, total: number) {
 
 export default function HeroPromoSlider({ banners }: { banners: Banner[] }) {
   const [active, setActive] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const [hovered, setHovered] = useState(false);
+  const [reducedMotion, setReducedMotion] = useState(false);
   const total = banners.length;
+  useEffect(() => {
+    const media = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const update = () => setReducedMotion(media.matches);
+    update(); media.addEventListener('change', update);
+    return () => media.removeEventListener('change', update);
+  }, []);
 
   useEffect(() => {
-    if (total <= 1) return;
+    if (total <= 1 || paused || hovered || reducedMotion) return;
     const timer = window.setInterval(() => {
-      setActive((index) => wrap(index + 1, total));
+      if (!document.hidden) setActive((index) => wrap(index + 1, total));
     }, 4500);
     return () => window.clearInterval(timer);
-  }, [total]);
+  }, [total, paused, hovered, reducedMotion]);
 
   function go(direction: 1 | -1) {
     setActive((index) => wrap(index + direction, total));
@@ -30,11 +39,11 @@ export default function HeroPromoSlider({ banners }: { banners: Banner[] }) {
   if (total === 0) return null;
 
   return (
-    <section className="overflow-hidden bg-bg-elev-1 py-3 sm:py-4">
+    <section aria-label="Store offers" onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)} onFocusCapture={() => setHovered(true)} onBlurCapture={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setHovered(false); }} className="overflow-hidden bg-bg-elev-1 py-3 sm:py-4">
       <div className="site-container relative">
         <div className="aspect-[2098/749] w-full overflow-hidden rounded-lg border border-border bg-bg-elev-3 shadow-card">
           <div
-            className="flex h-full transition-transform duration-700 ease-out"
+            className="flex h-full transition-transform duration-700 ease-out motion-reduce:transition-none"
             style={{ transform: `translateX(-${active * 100}%)` }}
           >
             {banners.map((banner) => {
@@ -78,15 +87,17 @@ export default function HeroPromoSlider({ banners }: { banners: Banner[] }) {
           </>
         )}
 
-        {total > 1 && <div className="mt-2 flex justify-center gap-1.5">
+        {total > 1 && <div className="mt-2 flex items-center justify-center gap-1.5">
+          <button type="button" title={paused ? 'Resume banners' : 'Pause banners'} aria-label={paused ? 'Resume banners' : 'Pause banners'} onClick={() => setPaused((value) => !value)} className="grid h-9 w-9 place-items-center text-text-muted">{paused ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}</button>
           {banners.map((banner, index) => (
             <button
               key={banner.title}
               type="button"
               aria-label={`Go to banner ${index + 1}`}
               onClick={() => setActive(index)}
-              className={`h-1.5 rounded-full transition-all ${index === active ? 'w-5 bg-text-muted' : 'w-1.5 bg-border-strong'}`}
-            />
+              aria-current={index === active ? 'true' : undefined}
+              className="grid h-9 w-9 place-items-center"
+            ><span className={`h-1.5 rounded-full transition-all ${index === active ? 'w-5 bg-text-muted' : 'w-1.5 bg-border-strong'}`} /></button>
           ))}
         </div>}
       </div>

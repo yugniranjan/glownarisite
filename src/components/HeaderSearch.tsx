@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { Clock3, Loader2, Package, Search, Sparkles, TrendingUp, X } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { formatMoney, getProducts, type GlownariProduct } from '@/lib/api';
 
 const QUICK_TERMS = ['Rose gold rings', 'Drop earrings', 'Hoop earrings', 'Pearl jewellery'];
@@ -13,31 +13,48 @@ export default function HeaderSearch({ mobile = false, autoFocus = false }: { mo
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [elapsedMs, setElapsedMs] = useState<number | null>(null);
+  const [activeIndex, setActiveIndex] = useState(-1);
+  const resultId = useId();
   const rootRef = useRef<HTMLDivElement | null>(null);
   const trimmed = query.trim();
 
   useEffect(() => {
+    function syncQuery() {
+      setQuery((new URLSearchParams(window.location.search).get('q') || '').slice(0, 120));
+      setOpen(false);
+    }
+    syncQuery();
     function onPointerDown(event: MouseEvent) {
       if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
     }
     document.addEventListener('mousedown', onPointerDown);
-    return () => document.removeEventListener('mousedown', onPointerDown);
+    window.addEventListener('pageshow', syncQuery);
+    window.addEventListener('popstate', syncQuery);
+    return () => {
+      document.removeEventListener('mousedown', onPointerDown);
+      window.removeEventListener('pageshow', syncQuery);
+      window.removeEventListener('popstate', syncQuery);
+    };
   }, []);
 
   useEffect(() => {
+    let cancelled = false;
+    setActiveIndex(-1);
+    if (!open) { setLoading(false); return; }
     const handle = window.setTimeout(() => {
       const startedAt = performance.now();
       setLoading(true);
       setElapsedMs(null);
       getProducts({ q: trimmed || undefined, take: 8 })
-        .then((res) => setItems(res.items))
+        .then((res) => { if (!cancelled) setItems(res.items); })
         .finally(() => {
+          if (cancelled) return;
           setElapsedMs(Math.max(1, Math.round(performance.now() - startedAt)));
           setLoading(false);
         });
     }, trimmed ? 180 : 0);
-    return () => window.clearTimeout(handle);
-  }, [trimmed]);
+    return () => { cancelled = true; window.clearTimeout(handle); };
+  }, [trimmed, open]);
 
   const suggestions = useMemo(() => {
     if (trimmed) return [];
@@ -45,7 +62,7 @@ export default function HeaderSearch({ mobile = false, autoFocus = false }: { mo
   }, [trimmed]);
 
   function submit() {
-    const target = trimmed ? `/#products?q=${encodeURIComponent(trimmed)}` : '/#products';
+    const target = trimmed ? `/?q=${encodeURIComponent(trimmed)}#products` : '/#products';
     window.location.href = target;
   }
 
@@ -56,6 +73,12 @@ export default function HeaderSearch({ mobile = false, autoFocus = false }: { mo
           <Search className="h-5 w-5" aria-hidden />
         </span>
         <input
+          aria-label="Search products"
+          role="combobox"
+          aria-autocomplete="list"
+          aria-expanded={open && Boolean(trimmed)}
+          aria-controls={trimmed && open && !loading && items.length ? resultId : undefined}
+          aria-activedescendant={open && !loading && activeIndex >= 0 ? `${resultId}-${activeIndex}` : undefined}
           autoFocus={autoFocus}
           value={query}
           onFocus={() => setOpen(true)}
@@ -64,9 +87,14 @@ export default function HeaderSearch({ mobile = false, autoFocus = false }: { mo
             setOpen(true);
           }}
           onKeyDown={(event) => {
+            if (trimmed && items.length && ['ArrowDown', 'ArrowUp'].includes(event.key)) {
+              event.preventDefault(); setOpen(true);
+              setActiveIndex((index) => event.key === 'ArrowDown' ? Math.min(index + 1, items.length - 1) : Math.max(index - 1, 0));
+            }
             if (event.key === 'Enter') {
               event.preventDefault();
-              submit();
+              if (open && activeIndex >= 0 && items[activeIndex]) window.location.href = `/products/${items[activeIndex].slug}`;
+              else submit();
             }
             if (event.key === 'Escape') setOpen(false);
           }}
@@ -126,13 +154,16 @@ export default function HeaderSearch({ mobile = false, autoFocus = false }: { mo
               ))}
             </div>
           ) : items.length > 0 ? (
-            <div className="max-h-[430px] overflow-auto p-2">
-              {items.map((product) => (
+            <div id={resultId} role="listbox" aria-label="Product results" className="max-h-[430px] overflow-auto p-2">
+              {items.map((product, index) => (
                 <Link
+                  id={`${resultId}-${index}`}
+                  role="option"
+                  aria-selected={activeIndex === index}
                   key={product.id}
                   href={`/products/${product.slug}`}
                   onClick={() => setOpen(false)}
-                  className="group flex gap-3 rounded-2xl p-2.5 transition hover:bg-bg-glass"
+                  className={`group flex gap-3 rounded-lg p-2.5 transition hover:bg-bg-glass ${activeIndex === index ? 'bg-accent-soft' : ''}`}
                 >
                   <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-bg-elev-3 ring-1 ring-border">
                     {product.coverImage ? (

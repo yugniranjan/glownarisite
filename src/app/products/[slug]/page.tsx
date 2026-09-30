@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import {
-  ArrowLeft,
+  ChevronRight,
   BadgeCheck,
   CheckCircle2,
   Headphones,
@@ -12,13 +12,13 @@ import {
   ShieldCheck,
   Tag,
   Truck,
-  Users,
 } from 'lucide-react';
-import { formatMoney, getProduct, getSocialProof, plusCount } from '@/lib/api';
+import { formatMoney, getProduct, getSocialProof } from '@/lib/api';
 import PaymentMethods from '@/components/PaymentMethods';
 import ProductAnalytics from '@/components/ProductAnalytics';
 import ProductPurchaseActions from '@/components/ProductPurchaseActions';
 import RatingStars from '@/components/RatingStars';
+import ProductGallery from '@/components/ProductGallery';
 
 const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '918506965129';
 
@@ -72,27 +72,16 @@ export default async function ProductPage({ params }: ProductPageProps) {
       />
 
       <main className="site-container pb-28 pt-7 sm:pt-9 lg:pb-14">
-        <Link
-          href="/#products"
-          className="mb-5 inline-flex items-center gap-2 text-sm font-semibold text-text-muted transition hover:text-accent"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to products
-        </Link>
+        <nav aria-label="Breadcrumb" className="mb-6 flex flex-wrap items-center gap-2 text-xs text-text-muted">
+          <Link href="/" className="hover:text-accent">Home</Link><ChevronRight className="h-3 w-3" />
+          <Link href="/#products" className="hover:text-accent">{product.category?.name || 'Products'}</Link><ChevronRight className="h-3 w-3" />
+          <span aria-current="page" className="text-text">{product.name}</span>
+        </nav>
 
         <section className="grid items-start gap-7 lg:grid-cols-[minmax(0,1.08fr)_minmax(390px,0.92fr)] lg:gap-12">
-          <div className="overflow-hidden rounded-lg border border-border bg-bg-elev-2">
-            <div className="relative aspect-[4/3] min-h-[300px] sm:min-h-[430px]">
-              {product.coverImage ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={product.coverImage}
-                  alt={product.name}
-                  className="absolute inset-0 h-full w-full object-cover"
-                />
-              ) : (
-                <div className="absolute inset-0 bg-bg-elev-3" />
-              )}
+          <div className="min-w-0 lg:sticky lg:top-40">
+            <div className="relative">
+              <ProductGallery name={product.name} images={product.images?.length ? product.images : product.coverImage ? [product.coverImage] : []} />
 
               <div className="absolute left-4 top-4 flex flex-wrap gap-2 sm:left-5 sm:top-5">
                 {discount > 0 && (
@@ -131,7 +120,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
               )}
             </div>
 
-            <h1 className="mt-3 font-display text-3xl font-black leading-tight text-text sm:text-4xl lg:text-[2.7rem]">
+            <h1 className="mt-3 font-display text-2xl font-semibold leading-tight text-text sm:text-3xl">
               {product.name}
             </h1>
             {product.shortDescription && (
@@ -142,13 +131,10 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
             <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 border-b border-border pb-5 text-sm">
               <RatingStars value={proof.rating} count={proof.reviews} compact size="sm" />
-              <span className="inline-flex items-center gap-1.5 text-text-muted">
-                <Users className="h-4 w-4 text-accent" />
-                {plusCount(proof.orders)} ordered
-              </span>
-              <span className="inline-flex items-center gap-1.5 font-semibold text-success">
+              <span className="text-xs text-text-muted">Store rating</span>
+              <span className={`inline-flex items-center gap-1.5 font-semibold ${product.stockQuantity === 0 ? 'text-text-muted' : 'text-success'}`}>
                 <CheckCircle2 className="h-4 w-4" />
-                {product.stockQuantity && product.stockQuantity > 0 ? 'In stock' : 'Available'}
+                {product.stockQuantity === 0 ? 'Out of stock' : product.stockQuantity != null ? `${product.stockQuantity} in stock` : 'In stock'}
               </span>
             </div>
 
@@ -174,7 +160,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
             </div>
 
             <div className="divide-y divide-border border-y border-border">
-              <div className="flex gap-3 py-3.5">
+              {discount > 0 && <div className="flex gap-3 py-3.5">
                 <Tag className="mt-0.5 h-5 w-5 shrink-0 text-accent" />
                 <div>
                   <p className="text-sm font-bold text-text">Special price</p>
@@ -182,6 +168,10 @@ export default async function ProductPage({ params }: ProductPageProps) {
                     The displayed discount is already applied.
                   </p>
                 </div>
+              </div>}
+              <div className="flex gap-3 py-3.5">
+                <Truck className="mt-0.5 h-5 w-5 shrink-0 text-accent" />
+                <div><p className="text-sm font-semibold text-text">Delivery across India</p><p className="mt-0.5 text-sm text-text-muted">Usually dispatched within 2–7 working days. <Link href="/shipping-policy" className="underline underline-offset-4 hover:text-accent">Shipping policy</Link></p></div>
               </div>
               <div className="flex gap-3 py-3.5">
                 <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-success" />

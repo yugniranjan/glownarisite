@@ -31,8 +31,8 @@ export const metadata: Metadata = {
     description: 'Curated products at honest prices.',
   },
   icons: {
-    icon: '/glownari-mark.png',
-    shortcut: '/glownari-mark.png',
+    icon: '/glownari-wordmark.png',
+    shortcut: '/glownari-wordmark.png',
     apple: '/icon.png',
   },
 };

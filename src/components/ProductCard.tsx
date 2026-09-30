@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { Package } from 'lucide-react';
 import { compactCount, formatMoney, type GlownariProduct } from '@/lib/api';
 import AddToCartButton from '@/components/AddToCartButton';
+import ProductImage from '@/components/ProductImage';
 
 interface Props {
   product: GlownariProduct;
@@ -36,7 +37,7 @@ export default function ProductCard({
       >
         <div className={poster ? 'aspect-[4/3]' : 'aspect-[4/3]'}>
           {product.coverImage ? (
-            <img
+            <ProductImage
               src={product.coverImage}
               alt={product.name}
               loading="lazy"
@@ -58,7 +59,7 @@ export default function ProductCard({
 
       <div className="flex flex-1 flex-col p-3 sm:p-3.5">
         <Link href={`/products/${product.slug}`} className="mt-1 block">
-          <h3 className="line-clamp-1 min-h-[24px] text-base font-bold leading-[1.35] text-text transition hover:text-accent sm:text-lg">
+          <h3 className="line-clamp-2 min-h-[48px] text-base font-bold leading-[1.35] text-text transition hover:text-accent sm:text-lg">
             {product.name}
           </h3>
         </Link>
@@ -66,8 +67,8 @@ export default function ProductCard({
         <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-text-dim">
           <span>{category}</span>
           {product.badge && <span className="text-accent">{product.badge}</span>}
-          {reviewCount > 0 && <span>{compactCount(reviewCount)} reviews</span>}
-          {isLowStock && <span className="text-accent">Few left</span>}
+          {reviewCount > 0 && <span>{compactCount(reviewCount)} store reviews</span>}
+          {product.stockQuantity != null && <span className={isLowStock ? 'text-accent' : 'text-text-muted'}>{product.stockQuantity === 0 ? 'Out of stock' : `${product.stockQuantity} in stock`}</span>}
         </div>
 
         <div className="mt-2 flex flex-wrap items-baseline gap-x-2 gap-y-1">

@@ -59,7 +59,7 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-40">
-      <div className="border-b border-border bg-bg-elev-1/95 text-text backdrop-blur-xl">
+      <div className="border-b border-border bg-bg-elev-1 text-text">
         <div className="site-container flex h-16 items-center gap-2 sm:h-[76px] sm:gap-3 lg:h-[86px] lg:gap-5">
           <button
             type="button"
@@ -72,19 +72,19 @@ export default function Header() {
 
           <Link href="/" className="flex shrink-0 items-center">
             <span
-              className={`inline-flex items-center justify-center overflow-hidden rounded-full border border-accent/25 bg-bg-elev-1 shadow-sm transition-all duration-300 ${
+              className={`inline-flex items-center justify-center transition-all duration-300 ${
                 scrolled
-                  ? 'h-10 w-10'
-                  : 'h-12 w-12 sm:h-14 sm:w-14 lg:h-16 lg:w-16'
+                  ? 'h-10 w-28 sm:w-36 lg:w-48'
+                  : 'h-10 w-28 sm:h-12 sm:w-40 lg:h-16 lg:w-56'
               }`}
             >
               <Image
-                src="/glownari-logo.png"
+                src="/glownari-wordmark.png"
                 alt="Glownari"
-                width={180}
-                height={180}
+                width={1600}
+                height={533}
                 priority
-                className="h-full w-full object-cover"
+                className="h-full w-full object-contain"
               />
             </span>
           </Link>
@@ -135,11 +135,11 @@ export default function Header() {
             <Home className="h-5 w-5" />
             Home
           </Link>
-          <Link href="/#earrings" className="inline-flex h-full items-center gap-2 border-b-2 border-transparent px-2 transition hover:border-accent/40 hover:text-accent">
+          <Link href="/category/earrings" className="inline-flex h-full items-center gap-2 border-b-2 border-transparent px-2 transition hover:border-accent/40 hover:text-accent">
             <Gem className="h-5 w-5" />
             Earrings
           </Link>
-          <Link href="/#rings" className="inline-flex h-full items-center gap-2 border-b-2 border-transparent px-2 transition hover:border-accent/40 hover:text-accent">
+          <Link href="/category/rings" className="inline-flex h-full items-center gap-2 border-b-2 border-transparent px-2 transition hover:border-accent/40 hover:text-accent">
             <Circle className="h-5 w-5" />
             Rings
           </Link>
@@ -165,14 +165,14 @@ export default function Header() {
             aria-modal="true"
           >
             <div className="flex items-center justify-between border-b border-border px-4 py-3">
-              <Link href="/" className="inline-flex h-16 w-16 items-center justify-center overflow-hidden rounded-full border border-accent/25 bg-bg-elev-1">
+              <Link href="/" className="inline-flex h-14 w-44 items-center justify-center">
                 <Image
-                  src="/glownari-logo.png"
+                  src="/glownari-wordmark.png"
                   alt="Glownari"
-                  width={180}
-                  height={180}
+                  width={1600}
+                  height={533}
                   priority
-                  className="h-full w-full object-cover"
+                  className="h-full w-full object-contain"
                 />
               </Link>
               <button
